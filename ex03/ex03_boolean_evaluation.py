@@ -13,7 +13,7 @@ class Node:
 class Rpn:
     def __init__(self, inp):
         self.input = inp
-        self.booleans = set(['0', '1'])
+        self.allowed_vars = set(['0', '1'])
         self.operators = set(['!', '&', '|', '^', '>', '='])
         self.stack = []
         self.node = None
@@ -22,7 +22,7 @@ class Rpn:
     def create(self):
         chars = list(self.input)
         for c in chars:
-            if c in self.booleans:
+            if c in self.allowed_vars:
                 self.node = Node(int(c))
                 self.stack.append(self.node)
             elif c in self.operators:
@@ -31,7 +31,7 @@ class Rpn:
                 self.node = Node(c, left, right)
                 self.stack.append(self.node)
             else:
-                raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {input}")
+                raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
     
     def compute(self, node=None):
         if node is None:
@@ -46,13 +46,15 @@ class Rpn:
             return bool(l & r)
         elif node.value == '|':
             return bool(l | r)
+        elif node.value == '^':
+            return bool(l ^ r)
         elif node.value == '>':
             return bool((not l) or r)
         elif node.value == '=':
             return bool(l == r)
 
     def print(self, depth=15):
-        print(C_BLUE + "Print tree : " + C_YELLOW + self.input, C_RES)
+        print(C_BLUE + "Print tree: " + C_YELLOW + self.input, C_RES)
         self._print_node(self.node, depth)
 
     def _print_node(self, node, depth):
