@@ -1,4 +1,3 @@
-import string
 C_GREEN = "\033[92m"
 C_RED = "\033[91m"
 C_YELLOW = "\033[33m"
@@ -27,9 +26,17 @@ class Rpn:
                 self.node = Node(int(c))
                 self.stack.append(self.node)
             elif c in self.operators:
-                right = self.stack.pop()
-                left = self.stack.pop()
-                self.node = Node(c, left, right)
+                if c == '!':
+                    if not self.stack:
+                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '!'")
+                    operand = self.stack.pop()
+                    self.node = Node(c, right=operand)
+                else:
+                    if len(self.stack) < 2:
+                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '{c}'")
+                    right = self.stack.pop()
+                    left = self.stack.pop()
+                    self.node = Node(c, left, right)
                 self.stack.append(self.node)
             else:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
@@ -39,20 +46,22 @@ class Rpn:
             node = self.node
         if isinstance(node.value, int):
             return int(node.value)
-        l = self.compute(node.left)
-        r = self.compute(node.right)
         if node.value == '!':
-            return bool(l != r)
-        elif node.value == '&':
-            return bool(l & r)
-        elif node.value == '|':
-            return bool(l | r)
-        elif node.value == '^':
-            return bool(l ^ r)
-        elif node.value == '>':
-            return bool((not l) or r)
-        elif node.value == '=':
-            return bool(l == r)
+            r = self.compute(node.right)
+            return bool(not r)
+        else:
+            l = self.compute(node.left)
+            r = self.compute(node.right)
+            if node.value == '&':
+                return bool(l & r)
+            elif node.value == '|':
+                return bool(l | r)
+            elif node.value == '^':
+                return bool(l ^ r)
+            elif node.value == '>':
+                return bool((not l) or r)
+            elif node.value == '=':
+                return bool(l == r)
 
     def print(self, depth=15):
         print(C_BLUE + "Print tree: " + C_YELLOW + self.input, C_RES)
