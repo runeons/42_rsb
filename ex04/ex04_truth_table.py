@@ -10,7 +10,7 @@ class Node:
         self.left = left
         self.right = right
 
-class Rpn:
+class BooleanRpn:
     def __init__(self, inp):
         self.input = inp
         self.allowed_vars = set(['0', '1'])
@@ -107,7 +107,7 @@ class TruthTable:
     def _compute(self, combination):
         comb_dict = dict(zip(self.variables, combination))
         new_input = self._replace_vars(comb_dict)
-        ast = Rpn(new_input)
+        ast = BooleanRpn(new_input)
         res = ast.compute()
         self.table.append((comb_dict, res))
 
@@ -136,7 +136,8 @@ class TruthTable:
         print(f"|-----|")
 
 def main():
-    str_inputs = ["AB&C|D|A&"]
+    # str_inputs = ["AB&C|D|A&"]
+    str_inputs = ["AB=", "A>B", "A!B|B!A!B||&"]
     for s in str_inputs:
         try:
             tt = TruthTable(s)
