@@ -238,43 +238,69 @@ class RPNtoNNF:
 
     def _replace_and_not(self, node):
         print(C_YELLOW, "_replace_and_not", C_RES)
-        pass
+        if (node is not None) and (node.right is not None) and (node.right.value == '&'):
+            node.value = '|'
+            new_node_left = Node('!', right=node.right.left)
+            new_node_right = Node('!', right=node.right.right)
+            node.left = new_node_left
+            node.right = new_node_right        
 
     def _replace_or_not(self, node):
         print(C_YELLOW, "_replace_or_not", C_RES)
-        pass
+        if (node is not None) and (node.right is not None) and (node.right.value == '|'):
+            node.value = '&'
+            new_node_left = Node('!', right=node.right.left)
+            new_node_right = Node('!', right=node.right.right)
+            node.left = new_node_left
+            node.right = new_node_right
 
     def _replace_double_not(self, node):
         print(C_YELLOW, "_replace_double_not", C_RES)
         pass
 
-    def _convert_once(self, node):
+    def _recursive_convert_each(self, node):
+        # print("nnf in _recursive_convert_each: ", self.get_nnf_formula())
         if node is not None:
+            # print("node is not None: ", node.value)
             if node.value == '=':
                 self._replace_equivalence(node)
             elif node.value == '^':
                 self._replace_xor(node)
             elif node.value == '>':
                 self._replace_implication(node)
-            elif node.value == '&':
-                if node.right is not None and node.right.value == '!':
-                    self._replace_and_not(node)
-            elif node.value == '|':
-                if node.right is not None and node.right.value == '!':
-                    self._replace_or_not(node)
             elif node.value == '!':
-                if node.right is not None and node.right.value == '!':
-                    self._replace_double_not(node)
-            self._convert_once(node.left)
-            self._convert_once(node.right)
+                if node.right is not None:
+                    if node.right.value == '|':
+                        self._replace_or_not(node)
+                    elif node.right.value == '&':
+                        self._replace_and_not(node)
+                    elif node.right.value == '!':
+                        self._replace_double_not(node)
+            self._recursive_convert_each(node.left)
+            self._recursive_convert_each(node.right)
         return self.ast
 
-    def _recursive_convert(self, node):
-        self._convert_once(node)
-
     def _convert_to_nnf(self):
-        self._recursive_convert(self.ast.node)
+        print("input:", self.ast.input)
+        self._recursive_convert_each(self.ast.node)
 
+    def convert_and_get_nnf_formula(self):
+        self._convert_to_nnf()
+        return self._recursive_to_nnf_formula(self.ast.node)
+
+    def _recursive_to_nnf_formula(self, node):
+        if node is None:
+            return ""
+        if node.value not in self.start_operators:
+            return node.value
+        if node.value == '!':
+            r = self._recursive_to_nnf_formula(node.right)
+            return f"{r}!"
+        l = self._recursive_to_nnf_formula(node.left)
+        r = self._recursive_to_nnf_formula(node.right)
+        if node.value in ['&', '|', '^', '>', '=']:
+            return f"{l}{r}{node.value}"
+        return ""
 
     # def _recursive_to_infix_formula(self, node):
     #     if node is None:
@@ -317,29 +343,12 @@ class RPNtoNNF:
     # def print_npi_formula(self):
     #     print(C_RED, "NPI   : ", self._recursive_to_npi_formula(self.init_ast.node), C_RES)
 
-    def _recursive_to_nnf_formula(self, node):
-        if node is None:
-            return ""
-        if node.value not in self.start_operators:
-            return node.value
-        if node.value == '!':
-            r = self._recursive_to_nnf_formula(node.right)
-            return f"{r}!"
-        l = self._recursive_to_nnf_formula(node.left)
-        r = self._recursive_to_nnf_formula(node.right)
-        if node.value in ['&', '|', '^', '>', '=']:
-            return f"{l}{r}{node.value}"
-        return ""
-
     def print_nnf_formula(self):
         print(C_BLUE, "NNF   : ", self._recursive_to_nnf_formula(self.ast.node), C_RES)
 
-    def convert_and_get_nnf_formula(self):
-        self._convert_to_nnf()
-        return self._recursive_to_nnf_formula(self.ast.node)
-
     def get_nnf_formula(self):
-        return self._recursive_to_nnf_formula(self.ast.node)
+        ret = self._recursive_to_nnf_formula(self.ast.node)
+        return ret
 
     def print(self, depth=15):
         print(C_BLUE + "Print NNF tree: init input " + C_YELLOW + self.init_ast.input, C_RES)
@@ -383,7 +392,7 @@ def main():
     # npi_inputs = ["AB&!", "A!B!|", "AB>", "AB=", "A!B|"]
     # npi_inputs = ["AB>", "A!B|", "AB|!", "A!B!&"]
     # npi_inputs = ["AB=", "A!B|", "AB>A>"]
-    npi_inputs = ["AB>"]
+    npi_inputs = ["AB|!", "AB&!"]
     for npi in npi_inputs:
         try:
             converter = RPNtoNNF(GenericRpn(npi))
@@ -398,7 +407,7 @@ def main():
                 print(C_GREEN, "True:", npi, "gives", nnf, C_RES)
             else:
                 print(C_RED, "False:", npi, "can not give", nnf, C_RES)
-            print('\n')
+            print()
         except ValueError as e:
             print(e)
 
