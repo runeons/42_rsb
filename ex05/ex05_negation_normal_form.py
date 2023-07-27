@@ -256,7 +256,15 @@ class RPNtoNNF:
 
     def _replace_double_not(self, node):
         print(C_YELLOW, "_replace_double_not", C_RES)
-        pass
+        if (node is not None) and (node.right is not None) and (node.right.value == '!'):
+            if (node.right.right):
+                node.value = node.right.right.value
+                new_node_left = node.right.right.left
+                new_node_right = node.right.right.right
+                node.left = new_node_left
+                node.right = new_node_right
+            else:
+                raise ValueError(f"{C_RED}Error in conversion:{C_RES} insufficient operands for operator '!'")
 
     def _recursive_convert_each(self, node):
         # print("nnf in _recursive_convert_each: ", self.get_nnf_formula())
@@ -388,11 +396,8 @@ class RPNtoNNF:
         return True
 
 def main():
-    # npi_inputs = ["AB&!", "AB|!", "AB>", "AB=", "AB|C&!"]
-    # npi_inputs = ["AB&!", "A!B!|", "AB>", "AB=", "A!B|"]
-    # npi_inputs = ["AB>", "A!B|", "AB|!", "A!B!&"]
-    # npi_inputs = ["AB=", "A!B|", "AB>A>"]
-    npi_inputs = ["AB|!", "AB&!"]
+    # npi_inputs = ["AB&!", "AB|!", "AB>", "AB=", "AB|C&!", "AB&!", "A!B!|", "A!B|", "A!B!&", "A!!B!!>"]
+    npi_inputs = ["AB>A>"]
     for npi in npi_inputs:
         try:
             converter = RPNtoNNF(GenericRpn(npi))
