@@ -225,8 +225,12 @@ class RPNtoNNF:
 
     def _replace_xor(self, node):
         print(C_YELLOW, "_replace_xor", C_RES)
-        pass
-
+        if node is not None:
+            node.value = '|'
+            new_node_left = Node('&', left=node.left, right=Node('!', right=node.right))
+            new_node_right = Node('&', left=Node('!', right=node.left), right=node.right)
+            node.left = new_node_left
+            node.right = new_node_right
     def _replace_implication(self, node):
         print(C_YELLOW, "_replace_implication", C_RES)
         if node is not None:
@@ -396,7 +400,7 @@ class RPNtoNNF:
         return True
 
 def main():
-    # npi_inputs = ["AB&!", "AB|!", "AB>", "AB=", "AB|C&!", "AB&!", "A!B!|", "A!B|", "A!B!&", "A!!B!!>"]
+    # npi_inputs = ["AB&!", "AB|!", "AB>", "AB=", "AB|C&!", "AB&!", "A!B!|", "A!B|", "A!B!&", "A!!B!!>", "AB^"]
     npi_inputs = ["AB>A>"]
     for npi in npi_inputs:
         try:
