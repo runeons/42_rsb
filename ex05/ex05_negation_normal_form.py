@@ -75,19 +75,28 @@ class RPNtoNNF:
     def check_nnf_format(self):
         pass
 
+    def print_node_debug(self, node, msg=""):
+        print(C_YELLOW, msg, C_RES)
+        if node is not None:
+            print(C_YELLOW, "n=", node.value, C_RES)
+        if node.left is not None:
+            print(C_YELLOW, "l=", node.left.value, C_RES)
+        if node.right is not None:
+            print(C_YELLOW, "r=", node.right.value, C_RES)
+
     def _replace_equivalence(self, node):
         print(C_YELLOW, "_replace_equivalence", C_RES)
         if node is not None:
             node.value = '&'
+            init_left = None
             if node.left is not None:
-                new_node_left = Node('>')
-                new_node_left.left = node.left
-                new_node_left.right = node.right
+                init_left = node.left
+                new_node_left = Node('>', left=node.left, right=node.right)
+                # self.print_node_debug(new_node_left, "new_node_left")
                 node.left = new_node_left
             if node.right is not None:
-                new_node_right = Node('>', left=node.right, right=node.left)
-                # new_node_right.left = node.right
-                # new_node_right.right = node.left
+                new_node_right = Node('>', left=node.right, right=init_left)
+                # self.print_node_debug(new_node_right, "new_node_right")
                 node.right = new_node_right
 
     def _replace_xor(self, node):
