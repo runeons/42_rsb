@@ -10,6 +10,132 @@ class Node:
         self.left = left
         self.right = right
 
+class BooleanRpn:
+    def __init__(self, inp):
+        self.input = inp
+        self.allowed_vars = set(['0', '1'])
+        self.operators = set(['!', '&', '|', '^', '>', '='])
+        self.stack = []
+        self.node = None
+        self.create()
+
+    def create(self):
+        chars = list(self.input)
+        for c in chars:
+            if c in self.allowed_vars:
+                self.node = Node(int(c))
+                self.stack.append(self.node)
+            elif c in self.operators:
+                if c == '!':
+                    if not self.stack:
+                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '!'")
+                    operand = self.stack.pop()
+                    self.node = Node(c, right=operand)
+                else:
+                    if len(self.stack) < 2:
+                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '{c}'")
+                    right = self.stack.pop()
+                    left = self.stack.pop()
+                    self.node = Node(c, left, right)
+                self.stack.append(self.node)
+            else:
+                raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
+    
+    def compute(self, node=None):
+        if node is None:
+            node = self.node
+        if isinstance(node.value, int):
+            return int(node.value)
+        if node.value == '!':
+            r = self.compute(node.right)
+            return bool(not r)
+        else:
+            l = self.compute(node.left)
+            r = self.compute(node.right)
+            if node.value == '&':
+                return bool(l & r)
+            elif node.value == '|':
+                return bool(l | r)
+            elif node.value == '^':
+                return bool(l ^ r)
+            elif node.value == '>':
+                return bool((not l) or r)
+            elif node.value == '=':
+                return bool(l == r)
+
+    def print(self, depth=15):
+        print(C_BLUE + "Print tree: " + C_YELLOW + self.input, C_RES)
+        self._print_node(self.node, depth)
+
+    def _print_node(self, node, depth):
+        if node is not None:
+            print("  " * depth, C_YELLOW, node.value, C_RES)
+            self._print_node(node.left, depth - 2)
+            self._print_node(node.right, depth + 2)
+
+class TruthTable:
+    def __init__(self, inp):
+        self.input = inp
+        self.variables = self.get_variables()
+        self.var_nb = len(self.variables)
+        self.table = []
+        self.generate()
+
+    def get_variables(self):
+        variables = set()
+        for c in list(self.input):
+            if c.isupper() and c not in variables:
+                variables.add(c)
+        return sorted(variables)
+    
+    def generate(self):
+        combinations = self._generate_combinations()
+        for cb in combinations:
+            self._compute(cb)
+
+    def _generate_combinations(self):
+        combinations = list(self._get_combinations(self.var_nb))
+        return combinations
+
+    def _get_combinations(self, var_nb):
+        for i in range(2 ** var_nb):
+            combination = []
+            for j in range(var_nb):
+                is_set = (i >> j) & 1
+                combination.append(bool(is_set))
+            yield combination # generateur, append implicite
+
+    def _compute(self, combination):
+        comb_dict = dict(zip(self.variables, combination))
+        new_input = self._replace_vars(comb_dict)
+        ast = BooleanRpn(new_input)
+        res = ast.compute()
+        self.table.append((comb_dict, res))
+
+    def _replace_vars(self, comb_dict):
+        new_input = self.input
+        for letter, boolean in comb_dict.items():
+            new_input = new_input.replace(letter, str(int(boolean)))
+        return new_input
+
+    def print(self):
+        print(C_BLUE + "Print truth table: " + C_YELLOW + self.input, C_RES)
+        self._print_sep_line()
+        for v in self.variables:
+            print(f"|  {v}  ", end='')
+        print(f"|  =  |")
+        self._print_sep_line()
+        for row in self.table:
+            for v in self.variables:
+                print(f"|  {int(row[0][v])}  ", end='')
+            print(f"|  {int(row[1])}  |")
+        self._print_sep_line()
+    
+    def _print_sep_line(self):
+        for _ in self.variables:
+            print(f"|-----", end='')
+        print(f"|-----|")
+
 class GenericRpn:
     def __init__(self, inp):
         self.input = inp
@@ -71,6 +197,7 @@ class RPNtoNNF:
         self.stack = []
         self.start_operators = set(['!', '&', '|', '^', '>', '='])
         self.end_operators = set(['!', '&', '|'])
+        self.allowed_vars = set(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'])
 
     def check_nnf_format(self):
         pass
@@ -150,7 +277,8 @@ class RPNtoNNF:
             self._convert_once(node.left)
             self._convert_once(node.right)        
 
-    def convert_to_nnf(self):
+    def _convert_to_nnf(self):
+        # while (self.is_nnf(self.get_nnf_formula()) == False):
         self._recursive_convert(self.ast.node)
 
     def _recursive_to_infix_formula(self, node):
@@ -209,7 +337,14 @@ class RPNtoNNF:
         return ""
 
     def print_nnf_formula(self):
-        print(C_RED, "NNF   : ", self._recursive_to_nnf_formula(self.ast.node), C_RES)
+        print(C_BLUE, "NNF   : ", self._recursive_to_nnf_formula(self.ast.node), C_RES)
+
+    def convert_and_get_nnf_formula(self):
+        self._convert_to_nnf()
+        return self._recursive_to_nnf_formula(self.ast.node)
+
+    def get_nnf_formula(self):
+        return self._recursive_to_nnf_formula(self.ast.node)
 
     def print(self, depth=15):
         print(C_BLUE + "Print NNF tree: init input " + C_YELLOW + self.init_ast.input, C_RES)
@@ -229,28 +364,46 @@ class RPNtoNNF:
                 print("  " * depth, C_YELLOW, node.value, C_RES)
             self._print_node(node.left, depth - 2)
             self._print_node(node.right, depth + 2)
+    
+    def check_nnf_format(self, nnf: str):
+        for i in range(len(nnf)):
+            if nnf[i] not in self.end_operators and nnf[i] not in self.allowed_vars:
+                raise ValueError(f"{C_RED}Error:{C_RES} character {nnf[i]} not allowed in nnf {nnf}")
+            elif (nnf[i] == '!'):
+                if i <= 0 or nnf[i - 1] not in self.allowed_vars:
+                    raise ValueError(f"{C_RED}Error:{C_RES} not (!) should always follow a variable in nnf {nnf}")
+        return True
 
+    def is_nnf(self, nnf:str):
+        for i in range(len(nnf)):
+            if nnf[i] not in self.end_operators and nnf[i] not in self.allowed_vars:
+                return False
+            elif (nnf[i] == '!'):
+                if i <= 0 or nnf[i - 1] not in self.allowed_vars:
+                    return False
+        return True
 
 def main():
     # npi_inputs = ["AB&!", "AB|!", "AB>", "AB=", "AB|C&!"]
     # npi_inputs = ["AB&!", "A!B!|", "AB>", "AB=", "A!B|"]
     # npi_inputs = ["AB>", "A!B|", "AB|!", "A!B!&"]
-    npi_inputs = ["AB="]
+    # npi_inputs = ["AB=", "A!B|", "AB>A>"]
+    npi_inputs = ["AB>A>"]
     for npi in npi_inputs:
         try:
-            npi_ast = GenericRpn(npi)
-            # npi_ast.print()
-            nnf = RPNtoNNF(npi_ast)
-            # nnf.print()
-            nnf.print_infix_formula()
-            nnf.print_npi_formula()
-            nnf.convert_to_nnf()
-            # nnf.print()
-            nnf.print_nnf_formula()
-            print('\n\n')
-            # converter = RPNtoNNF(npi)
-            # nnf = converter.convert()
-            # print(npi, " => ", nnf)
+            converter = RPNtoNNF(GenericRpn(npi))
+            nnf = converter.convert_and_get_nnf_formula()
+            # converter.print()
+            tt_npi = TruthTable(npi)
+            tt_nnf = TruthTable(nnf)
+            # tt_npi.print()
+            # tt_nnf.print()
+            converter.check_nnf_format(nnf)
+            if (tt_nnf.table == tt_npi.table):
+                print(C_GREEN, "True:", npi, "gives", nnf, C_RES)
+            else:
+                print(C_RED, "False:", npi, "can not give", nnf, C_RES)
+            print('\n')
         except ValueError as e:
             print(e)
 
