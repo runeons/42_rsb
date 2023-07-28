@@ -137,7 +137,7 @@ class TruthTable:
 
 def main():
     # str_inputs = ["AB&C|D|A&"]
-    str_inputs = ["AB^!", "AB>BA>&"]
+    str_inputs = ["A"]
     for s in str_inputs:
         try:
             tt = TruthTable(s)

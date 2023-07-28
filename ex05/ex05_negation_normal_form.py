@@ -28,12 +28,12 @@ class BooleanRpn:
             elif c in self.operators:
                 if c == '!':
                     if not self.stack:
-                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '!'")
+                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '!' in {self.input}")
                     operand = self.stack.pop()
                     self.node = Node(c, right=operand)
                 else:
                     if len(self.stack) < 2:
-                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '{c}'")
+                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '{c}' in {self.input}")
                     right = self.stack.pop()
                     left = self.stack.pop()
                     self.node = Node(c, left, right)
@@ -143,12 +143,15 @@ class GenericRpn:
         self.operators = set(['!', '&', '|', '^', '>', '='])
         self.stack = []
         self.node = None
+        self.operators_nb = 0
+        self.vars_nb = 0
         self.create()
 
     def create(self):
         chars = list(self.input)
         for c in chars:
             if c in self.allowed_vars:
+                self.vars_nb += 1
                 self.node = Node(c)
                 self.stack.append(self.node)
             elif c in self.operators:
@@ -158,6 +161,7 @@ class GenericRpn:
                     right = self.stack.pop()
                     self.node = Node(c, right=right)
                 else:
+                    self.operators_nb += 1
                     if len(self.stack) < 2:
                         raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '{c}'")
                     right = self.stack.pop()
@@ -166,7 +170,9 @@ class GenericRpn:
                 self.stack.append(self.node)
             else:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
-
+        if self.operators_nb == 0 and self.vars_nb > 1:
+            raise ValueError(f"{C_RED}Error:{C_RES} there should be at least one operator within '&', '|', '^', '>', '=' in {self.input}")
+        
     def _print_stack(self):
         for i in self.stack:
             print(C_GREEN, i.value, C_RES)
@@ -209,22 +215,18 @@ class RPNtoNNF:
             print(C_YELLOW, "r=", node.right.value, C_RES)
 
     def _replace_equivalence(self, node):
-        print(C_YELLOW, "_replace_equivalence", C_RES)
         if node is not None:
             node.value = '&'
             init_left = None
             if node.left is not None:
                 init_left = node.left
                 new_node_left = Node('>', left=node.left, right=node.right)
-                # self.print_node_debug(new_node_left, "new_node_left")
                 node.left = new_node_left
             if node.right is not None:
                 new_node_right = Node('>', left=node.right, right=init_left)
-                # self.print_node_debug(new_node_right, "new_node_right")
                 node.right = new_node_right
 
     def _replace_xor(self, node):
-        print(C_YELLOW, "_replace_xor", C_RES)
         if node is not None:
             node.value = '|'
             new_node_left = Node('&', left=node.left, right=Node('!', right=node.right))
@@ -233,7 +235,6 @@ class RPNtoNNF:
             node.right = new_node_right
         
     def _replace_implication(self, node):
-        print(C_YELLOW, "_replace_implication", C_RES)
         if node is not None:
             node.value = '|'
             if node.left is not None:
@@ -242,7 +243,6 @@ class RPNtoNNF:
                 node.left = new_node
 
     def _replace_and_not(self, node):
-        print(C_YELLOW, "_replace_and_not", C_RES)
         if (node is not None) and (node.right is not None) and (node.right.value == '&'):
             node.value = '|'
             new_node_left = Node('!', right=node.right.left)
@@ -251,22 +251,22 @@ class RPNtoNNF:
             node.right = new_node_right        
 
     def _replace_xor_not(self, node):
-        print(C_YELLOW, "_replace_and_not", C_RES)
         if (node is not None) and (node.right is not None) and (node.right.value == '^'):
             node.value = '&'
-            init_left = None
-            init_right = None
-            if node.right is not None:
-                init_left = node.right.left
-                init_right = node.right.right
-            new_node_left = Node('>', left=init_left, right=init_right)
-            new_node_right = Node('>', left=init_right, right=init_left)
+            new_node_left = Node('>', left=node.right.left, right=node.right.right)
+            new_node_right = Node('>', left=node.right.right, right=node.right.left)
             node.left = new_node_left
             node.right = new_node_right
-            # self.print_node_debug(new_node_right, "new_node_right")
+
+    def _replace_implication_not(self, node):
+        if (node is not None) and (node.right is not None) and (node.right.value == '>'):
+            node.value = '&'
+            new_node_left = node.right.left
+            new_node_right = Node('!', right = node.right.right)
+            node.left = new_node_left
+            node.right = new_node_right
 
     def _replace_or_not(self, node):
-        print(C_YELLOW, "_replace_or_not", C_RES)
         if (node is not None) and (node.right is not None) and (node.right.value == '|'):
             node.value = '&'
             new_node_left = Node('!', right=node.right.left)
@@ -274,8 +274,16 @@ class RPNtoNNF:
             node.left = new_node_left
             node.right = new_node_right
 
+    def _replace_equals_not(self, node):
+        if node is not None and (node.right is not None) and (node.right.value == '='):
+            node.value = '|'
+            new_node_left = Node('&', left=node.right.left, right=Node('!', right=node.right.right))
+            new_node_right = Node('&', left=Node('!', right=node.right.left), right=node.right.right)
+            node.left = new_node_left
+            node.right = new_node_right
+        
+
     def _replace_double_not(self, node):
-        print(C_YELLOW, "_replace_double_not", C_RES)
         if (node is not None) and (node.right is not None) and (node.right.value == '!'):
             if (node.right.right):
                 node.value = node.right.right.value
@@ -287,34 +295,34 @@ class RPNtoNNF:
                 raise ValueError(f"{C_RED}Error in conversion:{C_RES} insufficient operands for operator '!'")
 
     def _recursive_convert_each(self, node):
-        # print("nnf in _recursive_convert_each: ", self.get_nnf_formula())
         if node is not None:
-            # print("node is: ", node.value)
-            # if node.right is not None:
-                # print("node.right is: ", node.right.value)
-
-            if node.value == '=':           # if ou elif ?
+            if node.value == '=':
                 self._replace_equivalence(node)
-            if node.value == '^':
+            elif node.value == '^':
                 self._replace_xor(node)
-            if node.value == '>':
+            elif node.value == '>':
                 self._replace_implication(node)
-            if node.value == '!':
-                if node.right is not None:
+            elif node.value == '!':
+                if node.right is not None and node.right.value not in self.allowed_vars:
                     if node.right.value == '|':
                         self._replace_or_not(node)
                     elif node.right.value == '^':
                         self._replace_xor_not(node)
                     elif node.right.value == '&':
                         self._replace_and_not(node)
+                    elif node.right.value == '>':
+                        self._replace_implication_not(node)
                     elif node.right.value == '!':
                         self._replace_double_not(node)
+                    elif node.right.value == '=':
+                        self._replace_equals_not(node)
+                    else:
+                        raise ValueError(f"{C_RED}Error:{C_RES} character {node.right.value} should not be followed by not (!) in {self.get_nnf_formula()}")
             self._recursive_convert_each(node.left)
             self._recursive_convert_each(node.right)
         return self.ast
 
     def _convert_to_nnf(self):
-        print("input:", self.ast.input)
         self._recursive_convert_each(self.ast.node)
 
     def convert_and_get_nnf_formula(self):
@@ -421,24 +429,32 @@ class RPNtoNNF:
         return True
 
 def main():
-    # npi_inputs = ["AB&!", "AB|!", "AB>", "AB=", "AB|C&!", "AB&!", "A!B!|", "A!B|", "A!B!&", "A!!B!!>", "AB^", "AB!^", "AB^!"]
-    npi_inputs = ["AB>A>"]
+    npi_inputs = [
+        "AB=", "AB>", "AB^", "AB|", "AB&", "AB!"
+        "AB=!", "AB>!", "AB^!", "AB|!", "AB&!",
+        "AB=AB==", "AB>AB>=", "AB^AB^=", "AB|AB|=", "AB&AB&=", "AB!AB!=",
+        "AB=AB=>", "AB>AB>>", "AB^AB^>", "AB|AB|>", "AB&AB&>", "AB!AB!>",
+        "AB=AB=^", "AB>AB>^", "AB^AB^^", "AB|AB|^", "AB&AB&^", "AB!AB!^",
+        "AB=AB=|", "AB>AB>|", "AB^AB^|", "AB|AB||", "AB&AB&|", "AB!AB!|",
+        "AB=AB=&", "AB>AB>&", "AB^AB^&", "AB|AB|&", "AB&AB&&", "AB!AB!&",
+        "AB=AB=!", "AB>AB>!", "AB^AB^!", "AB|AB|!", "AB&AB&!",
+        "AB|C&!", "A!B!|", "A!B|", "A!B!&", "A!!B!!>", "AB!^", "AB>A>", "AB>A>B>",
+        "AB!", "A", "A!", "!A"
+    ]
     for npi in npi_inputs:
         try:
             converter = RPNtoNNF(GenericRpn(npi))
             nnf = converter.convert_and_get_nnf_formula()
-            # converter.print()
             tt_npi = TruthTable(npi)
             tt_nnf = TruthTable(nnf)
             # tt_npi.print()
             # tt_nnf.print()
-            # converter.print()
             converter.check_nnf_format(nnf)
             if (tt_nnf.table == tt_npi.table):
                 print(C_GREEN, "True:", npi, "gives", nnf, C_RES)
             else:
                 print(C_RED, "False:", npi, "can not give", nnf, C_RES)
-            print()
+            # print()
         except ValueError as e:
             print(e)
 
