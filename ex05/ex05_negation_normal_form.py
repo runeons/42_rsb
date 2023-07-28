@@ -231,6 +231,7 @@ class RPNtoNNF:
             new_node_right = Node('&', left=Node('!', right=node.left), right=node.right)
             node.left = new_node_left
             node.right = new_node_right
+        
     def _replace_implication(self, node):
         print(C_YELLOW, "_replace_implication", C_RES)
         if node is not None:
@@ -248,6 +249,21 @@ class RPNtoNNF:
             new_node_right = Node('!', right=node.right.right)
             node.left = new_node_left
             node.right = new_node_right        
+
+    def _replace_xor_not(self, node):
+        print(C_YELLOW, "_replace_and_not", C_RES)
+        if (node is not None) and (node.right is not None) and (node.right.value == '^'):
+            node.value = '&'
+            init_left = None
+            init_right = None
+            if node.right is not None:
+                init_left = node.right.left
+                init_right = node.right.right
+            new_node_left = Node('>', left=init_left, right=init_right)
+            new_node_right = Node('>', left=init_right, right=init_left)
+            node.left = new_node_left
+            node.right = new_node_right
+            # self.print_node_debug(new_node_right, "new_node_right")
 
     def _replace_or_not(self, node):
         print(C_YELLOW, "_replace_or_not", C_RES)
@@ -271,19 +287,24 @@ class RPNtoNNF:
                 raise ValueError(f"{C_RED}Error in conversion:{C_RES} insufficient operands for operator '!'")
 
     def _recursive_convert_each(self, node):
-        print("nnf in _recursive_convert_each: ", self.get_nnf_formula())
+        # print("nnf in _recursive_convert_each: ", self.get_nnf_formula())
         if node is not None:
-            print("node is not None: ", node.value)
-            if node.value == '=':
+            # print("node is: ", node.value)
+            # if node.right is not None:
+                # print("node.right is: ", node.right.value)
+
+            if node.value == '=':           # if ou elif ?
                 self._replace_equivalence(node)
-            elif node.value == '^':
+            if node.value == '^':
                 self._replace_xor(node)
-            elif node.value == '>':
+            if node.value == '>':
                 self._replace_implication(node)
-            elif node.value == '!':
+            if node.value == '!':
                 if node.right is not None:
                     if node.right.value == '|':
                         self._replace_or_not(node)
+                    elif node.right.value == '^':
+                        self._replace_xor_not(node)
                     elif node.right.value == '&':
                         self._replace_and_not(node)
                     elif node.right.value == '!':
@@ -400,9 +421,8 @@ class RPNtoNNF:
         return True
 
 def main():
-    # npi_inputs = ["AB&!", "AB|!", "AB>", "AB=", "AB|C&!", "AB&!", "A!B!|", "A!B|", "A!B!&", "A!!B!!>", "AB^", "AB!^"]
-    # npi_inputs = ["AB>A>"]
-    npi_inputs = ["AB>A>", "AB^!"]
+    # npi_inputs = ["AB&!", "AB|!", "AB>", "AB=", "AB|C&!", "AB&!", "A!B!|", "A!B|", "A!B!&", "A!!B!!>", "AB^", "AB!^", "AB^!"]
+    npi_inputs = ["AB>A>"]
     for npi in npi_inputs:
         try:
             converter = RPNtoNNF(GenericRpn(npi))
@@ -412,7 +432,7 @@ def main():
             tt_nnf = TruthTable(nnf)
             # tt_npi.print()
             # tt_nnf.print()
-            converter.print()
+            # converter.print()
             converter.check_nnf_format(nnf)
             if (tt_nnf.table == tt_npi.table):
                 print(C_GREEN, "True:", npi, "gives", nnf, C_RES)
