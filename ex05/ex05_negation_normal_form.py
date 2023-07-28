@@ -271,9 +271,9 @@ class RPNtoNNF:
                 raise ValueError(f"{C_RED}Error in conversion:{C_RES} insufficient operands for operator '!'")
 
     def _recursive_convert_each(self, node):
-        # print("nnf in _recursive_convert_each: ", self.get_nnf_formula())
+        print("nnf in _recursive_convert_each: ", self.get_nnf_formula())
         if node is not None:
-            # print("node is not None: ", node.value)
+            print("node is not None: ", node.value)
             if node.value == '=':
                 self._replace_equivalence(node)
             elif node.value == '^':
@@ -400,8 +400,9 @@ class RPNtoNNF:
         return True
 
 def main():
-    # npi_inputs = ["AB&!", "AB|!", "AB>", "AB=", "AB|C&!", "AB&!", "A!B!|", "A!B|", "A!B!&", "A!!B!!>", "AB^"]
-    npi_inputs = ["AB>A>"]
+    # npi_inputs = ["AB&!", "AB|!", "AB>", "AB=", "AB|C&!", "AB&!", "A!B!|", "A!B|", "A!B!&", "A!!B!!>", "AB^", "AB!^"]
+    # npi_inputs = ["AB>A>"]
+    npi_inputs = ["AB>A>", "AB^!"]
     for npi in npi_inputs:
         try:
             converter = RPNtoNNF(GenericRpn(npi))
@@ -411,6 +412,7 @@ def main():
             tt_nnf = TruthTable(nnf)
             # tt_npi.print()
             # tt_nnf.print()
+            converter.print()
             converter.check_nnf_format(nnf)
             if (tt_nnf.table == tt_npi.table):
                 print(C_GREEN, "True:", npi, "gives", nnf, C_RES)
