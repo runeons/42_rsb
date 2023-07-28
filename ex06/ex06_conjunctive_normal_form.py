@@ -356,6 +356,10 @@ class RPNtoNNF:
         self._convert_to_nnf()
         return self._recursive_to_nnf_formula(self.ast.node)
 
+    def convert_and_get_nnf_ast(self):
+        self._convert_to_nnf()
+        return self.ast
+
     ################ print formulas ################
 
     # def _recursive_to_infix_formula(self, node):
@@ -402,9 +406,9 @@ class RPNtoNNF:
     # def print_nnf_formula(self):
     #     print(C_BLUE, "NNF   : ", self._recursive_to_nnf_formula(self.ast.node), C_RES)
 
-    # def get_nnf_formula(self):
-    #     ret = self._recursive_to_nnf_formula(self.ast.node)
-    #     return ret
+    def get_nnf_formula(self):
+        ret = self._recursive_to_nnf_formula(self.ast.node)
+        return ret
 
     ################ print tree ################
 
@@ -436,37 +440,160 @@ class RPNtoNNF:
                     raise ValueError(f"{C_RED}Error:{C_RES} not (!) should always follow a variable in nnf {nnf}")
         return True
 
-def main():
-    npi_inputs = [
-        "AB=", "AB>", "AB^", "AB|", "AB&", "AB!"
-        "AB=!", "AB>!", "AB^!", "AB|!", "AB&!",
-        "AB=AB==", "AB>AB>=", "AB^AB^=", "AB|AB|=", "AB&AB&=", "AB!AB!=",
-        "AB=AB=>", "AB>AB>>", "AB^AB^>", "AB|AB|>", "AB&AB&>", "AB!AB!>",
-        "AB=AB=^", "AB>AB>^", "AB^AB^^", "AB|AB|^", "AB&AB&^", "AB!AB!^",
-        "AB=AB=|", "AB>AB>|", "AB^AB^|", "AB|AB||", "AB&AB&|", "AB!AB!|",
-        "AB=AB=&", "AB>AB>&", "AB^AB^&", "AB|AB|&", "AB&AB&&", "AB!AB!&",
-        "AB=AB=!", "AB>AB>!", "AB^AB^!", "AB|AB|!", "AB&AB&!",
-        "A!B|", "A!B!&", "A!!B!!>", "AB!^", "AB>A>", "AB>A>B>",
-        "A", "A!",
-        "AB|C&!", "A!B!|", "ABAA||=",   # subject
-        "AB&C!>", "BC&A|",
-        "BC&A!", # wrong input a gerer
-        # "AB!", "!A", "AB&C!|>", "AA", "AB&c"          # wrong input
-    ]
+class RPNtoCNF:
+    def __init__(self, ast):
+        self.init_ast = ast
+        self.nnf_converter = RPNtoNNF(ast)
+        self.nnf = self.nnf_converter.convert_and_get_nnf_formula()
+        self.ast = self.nnf_converter.ast
+        self.stack = []
+        self.start_operators = set(['!', '&', '|', '^', '>', '='])
+        self.end_operators = set(['!', '&', '|'])
+        self.allowed_vars = set(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'])
 
+    ################ debug ################
+
+    def print_node_debug(self, node, msg=""):
+        print(C_YELLOW, msg, C_RES)
+        if node is not None:
+            print(C_YELLOW, "n=", node.value, C_RES)
+        if node.left is not None:
+            print(C_YELLOW, "l=", node.left.value, C_RES)
+        if node.right is not None:
+            print(C_YELLOW, "r=", node.right.value, C_RES)
+
+    ################ convert to cnf ################
+
+    def _replace_case_1(self, node):
+        if node is not None:
+            print(C_YELLOW, "CASE_1", C_RES)
+            node.value = '&'
+            new_node_left = Node('|', left=node.right, right=node.left.left)
+            new_node_right = Node('|', left=node.right, right=node.left.right)
+            node.left = new_node_left
+            node.right = new_node_right
+
+    def _replace_case_2(self, node):
+        if node is not None:
+            print(C_YELLOW, "CASE_2", C_RES)
+            print("chercher le commun aux feuilles de nodes.left et node.right")
+            ll = node.left.left
+            lr = node.left.right
+            rl = node.right.left
+            rr = node.right.right
+            print('ll:', ll.value, 'lr:', lr.value, 'rl:', rl.value, 'rr:', rr.value)
+            # print('ll:', ll.value, 'lr!:', lr.right.value, 'rl:!', rl.right.value, 'rr:', rr.value)
+            node.value = '&'
+            new_node_left = Node('|', left=node.left.right, right=node.right.right)
+            new_node_right = node.left.left # or node.right.left
+            print(C_RED, node.left.left.value == node.right.left.value, C_RES)
+            print(C_RED, "node.left.left.value =", node.left.left.value, C_RES)
+            print(C_RED, "node.right.left.value =", node.right.left.value, C_RES)
+            node.left = new_node_left
+            node.right = new_node_right
+
+    def _recursive_convert_each(self, node):
+        if node is not None:
+            self.print_node_debug(node)
+            if node.value == '|' and node.left is not None and node.left.value == '&' and node.right is not None:
+                if node.right.value in self.allowed_vars:
+                    self._replace_case_1(node)
+                elif node.right.value == '&':
+                    self._replace_case_2(node)
+                else:
+                    raise ValueError(f"{C_RED}Error: check in {self.nnf}")
+            # if node.value == '!':
+            #     if node.right is not None and node.right.value not in self.allowed_vars:
+            #         if node.right.value == '|':
+            #             self._replace_or_not(node)
+            #         elif node.right.value == '^':
+            #             self._replace_xor_not(node)
+            #         elif node.right.value == '&':
+            #             self._replace_and_not(node)
+            #         elif node.right.value == '>':
+            #             self._replace_implication_not(node)
+            #         elif node.right.value == '!':
+            #             self._replace_double_not(node)
+            #         elif node.right.value == '=':
+            #             self._replace_equals_not(node)
+            #         else:
+            #             raise ValueError(f"{C_RED}Error:{C_RES} character {node.right.value} should not be followed by not (!) in {self.get_nnf_formula()}")
+            self._recursive_convert_each(node.left)
+            self._recursive_convert_each(node.right)
+        return self.ast
+
+    def _recursive_to_cnf_formula(self, node):
+        if node is None:
+            return ""
+        if node.value not in self.start_operators:
+            return node.value
+        if node.value == '!':
+            r = self._recursive_to_cnf_formula(node.right)
+            return f"{r}!"
+        l = self._recursive_to_cnf_formula(node.left)
+        r = self._recursive_to_cnf_formula(node.right)
+        if node.value in ['&', '|', '^', '>', '=']:
+            return f"{l}{r}{node.value}"
+        return ""
+
+    def _convert_to_cnf(self):
+        self._recursive_convert_each(self.ast.node)
+
+    def convert_and_get_cnf_formula(self):
+        # return self.nnf
+        self._convert_to_cnf()
+        return self._recursive_to_cnf_formula(self.ast.node)
+
+    ################ print tree ################
+
+    def _print_node(self, node, depth):
+        if node is not None:
+            print(C_GREEN, "Node : ",  node.value, C_RES)
+            if node.left is not None:
+                print(C_GREEN, "Left : ", node.left.value, C_RES)
+            if node.right is not None:
+                print(C_GREEN, "Right : ", node.right.value, C_RES)
+        if node is not None:
+            if node.value == '!':
+                print("  " * depth, C_YELLOW, node.value, C_RES)
+            else:
+                print("  " * depth, C_YELLOW, node.value, C_RES)
+            self._print_node(node.left, depth - 2)
+            self._print_node(node.right, depth + 2)
+    
+    def print(self, depth=15):
+        print(C_BLUE + "Print CNF tree: init input " + C_YELLOW + self.init_ast.input, C_RES)
+        self._print_node(self.ast.node, depth)
+
+    def check_cnf_format(self, nnf: str):
+        for i in range(len(nnf)):
+            if nnf[i] not in self.end_operators and nnf[i] not in self.allowed_vars:
+                raise ValueError(f"{C_RED}Error:{C_RES} character {nnf[i]} not allowed in nnf {nnf}")
+            elif (nnf[i] == '!'):
+                if i <= 0 or nnf[i - 1] not in self.allowed_vars:
+                    raise ValueError(f"{C_RED}Error:{C_RES} not (!) should always follow a variable in nnf {nnf}")
+            elif (nnf[i] == '&'):
+                if i != (len(nnf) - 1) and nnf[i + 1] != '&':
+                    raise ValueError(f"{C_RED}Error:{C_RES} (&)) should always be at the end in cnf {nnf}")
+        return True
+
+
+def main():
+    # npi_inputs = ["AB=", "AB>", "AB^", "AB|", "AB&"]
+    npi_inputs = ["AB^"]
     for npi in npi_inputs:
         try:
-            converter = RPNtoNNF(GenericRpn(npi))
-            nnf = converter.convert_and_get_nnf_formula()
+            converter = RPNtoCNF(GenericRpn(npi))
+            cnf = converter.convert_and_get_cnf_formula()
             tt_npi = TruthTable(npi)
-            tt_nnf = TruthTable(nnf)
+            tt_cnf = TruthTable(cnf)
             # tt_npi.print()
-            # tt_nnf.print()
-            converter.check_nnf_format(nnf)
-            if (tt_nnf.table == tt_npi.table):
-                print(C_GREEN, "True:", npi, "gives", nnf, C_RES)
+            # tt_cnf.print()
+            converter.check_cnf_format(cnf)
+            if (tt_cnf.table == tt_npi.table):
+                print(C_GREEN, "True:", npi, "gives", cnf, C_RES)
             else:
-                print(C_RED, "False:", npi, "can not give", nnf, C_RES)
+                print(C_RED, "False:", npi, "can not give", cnf, C_RES)
         except ValueError as e:
             print(e)
 
