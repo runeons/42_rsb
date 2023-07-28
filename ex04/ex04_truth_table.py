@@ -99,13 +99,13 @@ class TruthTable:
             self._compute(cb)
 
     def _generate_combinations(self):
-        combinations = list(self._get_combinations(self.var_nb))
+        combinations = list(self._get_combinations())
         return combinations
 
-    def _get_combinations(self, var_nb):
-        for i in range(2 ** var_nb):
+    def _get_combinations(self):
+        for i in range(2 ** self.var_nb):
             combination = []
-            for j in range(var_nb):
+            for j in range(self.var_nb):
                 is_set = (i >> j) & 1
                 combination.append(bool(is_set))
             yield combination # generateur, append implicite
@@ -142,8 +142,12 @@ class TruthTable:
         print(f"|-----|")
 
 def main():
-    # str_inputs = ["AB&C|D|A&"]
-    str_inputs = ["AA!"]
+    str_inputs = [
+        "AB=", "AB>", "AB^", "AB|", "AB&",
+        "AB|C&!", "A!B!|", "ABAA||=",   # subject ex05
+        "AB&C!>",
+        # "AB!", "!A", "AB&C!|>", "AA", "AB&c"          # wrong input
+    ]
     for s in str_inputs:
         try:
             tt = TruthTable(s)

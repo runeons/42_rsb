@@ -83,6 +83,13 @@ class TruthTable:
         self.table = []
         self.generate()
 
+    def get_variables(self):
+        variables = set()
+        for c in list(self.input):
+            if c.isupper() and c not in variables:
+                variables.add(c)
+        return sorted(variables)
+    
     ################ compute truth table ################
 
     def _replace_vars(self, comb_dict):
