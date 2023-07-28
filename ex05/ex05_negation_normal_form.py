@@ -157,13 +157,13 @@ class GenericRpn:
             elif c in self.operators:
                 if c == '!':
                     if not self.stack:
-                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '!'")
+                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '!' in {self.input}")
                     right = self.stack.pop()
                     self.node = Node(c, right=right)
                 else:
                     self.operators_nb += 1
                     if len(self.stack) < 2:
-                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '{c}'")
+                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '{c}' in {self.input}")
                     right = self.stack.pop()
                     left = self.stack.pop()
                     self.node = Node(c, left, right)
@@ -292,7 +292,7 @@ class RPNtoNNF:
                 node.left = new_node_left
                 node.right = new_node_right
             else:
-                raise ValueError(f"{C_RED}Error in conversion:{C_RES} insufficient operands for operator '!'")
+                raise ValueError(f"{C_RED}Error in conversion:{C_RES} insufficient operands for operator '!' in {self.input}")
 
     def _recursive_convert_each(self, node):
         if node is not None:
@@ -438,9 +438,13 @@ def main():
         "AB=AB=|", "AB>AB>|", "AB^AB^|", "AB|AB||", "AB&AB&|", "AB!AB!|",
         "AB=AB=&", "AB>AB>&", "AB^AB^&", "AB|AB|&", "AB&AB&&", "AB!AB!&",
         "AB=AB=!", "AB>AB>!", "AB^AB^!", "AB|AB|!", "AB&AB&!",
-        "AB|C&!", "A!B!|", "A!B|", "A!B!&", "A!!B!!>", "AB!^", "AB>A>", "AB>A>B>",
-        "AB!", "A", "A!", "!A"
+        "A!B|", "A!B!&", "A!!B!!>", "AB!^", "AB>A>", "AB>A>B>",
+        "A", "A!",
+        "AB|C&!", "A!B!|", "ABAA||=",   # subject
+        "AB&C!>",
+        # "AB!", "!A", "AB&C!|>", "AA", "AB&c"          # wrong input
     ]
+
     for npi in npi_inputs:
         try:
             converter = RPNtoNNF(GenericRpn(npi))

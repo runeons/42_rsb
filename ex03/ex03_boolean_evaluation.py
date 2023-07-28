@@ -10,37 +10,43 @@ class Node:
         self.left = left
         self.right = right
 
-class Rpn:
+class BooleanRpn:
     def __init__(self, inp):
         self.input = inp
         self.allowed_vars = set(['0', '1'])
         self.operators = set(['!', '&', '|', '^', '>', '='])
         self.stack = []
         self.node = None
+        self.operators_nb = 0
+        self.vars_nb = 0
         self.create()
 
     def create(self):
         chars = list(self.input)
         for c in chars:
             if c in self.allowed_vars:
+                self.vars_nb += 1
                 self.node = Node(int(c))
                 self.stack.append(self.node)
             elif c in self.operators:
                 if c == '!':
                     if not self.stack:
-                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '!'")
+                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '!' in {self.input}")
                     operand = self.stack.pop()
                     self.node = Node(c, right=operand)
                 else:
+                    self.operators_nb += 1
                     if len(self.stack) < 2:
-                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '{c}'")
+                        raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '{c}' in {self.input}")
                     right = self.stack.pop()
                     left = self.stack.pop()
                     self.node = Node(c, left, right)
                 self.stack.append(self.node)
             else:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
-    
+        if self.operators_nb == 0 and self.vars_nb > 1:
+            raise ValueError(f"{C_RED}Error:{C_RES} there should be at least one operator within '&', '|', '^', '>', '=' in {self.input}")
+
     def compute(self, node=None):
         if node is None:
             node = self.node
@@ -77,7 +83,7 @@ def main():
     str_inputs = ["10&", "10=", "10|", "11=", "11>", "1011||=", "10&!", "10=!", "10|!", "11=!", "11>!", "1011||=!"]
     for s in str_inputs:
         try:
-            ast = Rpn(s)
+            ast = BooleanRpn(s)
             # ast.print()
             result = ast.compute()
             print(s, " => ", result)
