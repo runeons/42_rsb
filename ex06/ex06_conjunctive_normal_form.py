@@ -479,46 +479,10 @@ class RPNtoCNF:
 
     ################ convert to cnf ################
 
-    def _replace_case_1(self, node):
-        if node is not None:
-            print(C_YELLOW, "CASE_1", C_RES)
-            node.value = '&'
-            new_node_left = Node('|', left=node.right, right=node.left.left)
-            new_node_right = Node('|', left=node.right, right=node.left.right)
-            node.left = new_node_left
-            node.right = new_node_right
-
-    def _find_common_node(self, node):
-        common_nodes = []
-        if node is not None:
-            ll = node.left.left
-            lr = node.left.right
-            rl = node.right.left
-            rr = node.right.right
-            print('ll:', ll.value, 'lr!:', lr.value, 'rl:!', rl.value, 'rr:', rr.value)
-            self.print_node_debug(ll, "ll:\n")
-            self.print_node_debug(lr, "lr:\n")
-            self.print_node_debug(rl, "rl:\n")
-            self.print_node_debug(rr, "rr:\n")
-            if ll == lr:
-                common_nodes.append('ll and lr')
-            if ll == rl:
-                common_nodes.append('ll and rl')
-            if ll == rr:
-                common_nodes.append('ll and rr')
-            if lr == rl:
-                common_nodes.append('lr and rl')
-            if lr == rr:
-                common_nodes.append('lr and rr')
-            if rl == rr:
-                common_nodes.append('rl and rr')
-        return common_nodes
-
     def _replace_case_2(self, node):
         if node is not None:
             print(C_YELLOW, "CASE_2", C_RES)
             print("chercher le commun aux feuilles de nodes.left et node.right")
-            # common_nodes = self._find_common_node(node)
             a = None
             b = None
             c = None
@@ -548,17 +512,70 @@ class RPNtoCNF:
             node.left = new_node_left
             node.right = new_node_right
 
+    def _replace_case_1(self, node):
+        if node is not None:
+            print(C_YELLOW, "CASE_1", C_RES)
+            node.value = '&'
+            new_node_left = Node('|', left=node.right, right=node.left.left)
+            new_node_right = Node('|', left=node.right, right=node.left.right)
+            node.left = new_node_left
+            node.right = new_node_right
+
+    def _associative_and(self, node):
+        print(C_YELLOW, "_associative_and", C_RES)
+        if node is not None:
+            if node.left and node.left.value == '&' and node.right and node.right.value == '&':
+                self._associative_and(node.left)
+                self._associative_and(node.right)
+            elif node.left and node.left.value == '&':
+                self._associative_and(node.left)
+            elif node.right and node.right.value == '&':
+                self._associative_and(node.right)
+            else:
+                return
+            if node.left and node.right:
+                node.value = '&'
+                new_node_left = node.left.left
+                new_node_right = Node('&', left=node.left.right, right=node.right) # penche a gauche
+                # new_node_right = Node('&', left=node.left.right, right=node.right.right) # pour pencher a gauche
+                node.left = new_node_left
+                node.right = new_node_right
+
+    def _associative_or(self, node):
+        print(C_YELLOW, "_associative_or", C_RES)
+        if node is not None:
+            if node.left and node.left.value == '|' and node.right and node.right.value == '|':
+                self._associative_or(node.left)
+                self._associative_or(node.right)
+            elif node.left and node.left.value == '|':
+                self._associative_or(node.left)
+            elif node.right and node.right.value == '|':
+                self._associative_or(node.right)
+            else:
+                return
+            if node.left and node.right:
+                node.value = '|'
+                new_node_left = node.left.left
+                new_node_right = Node('|', left=node.left.right, right=node.right)
+                node.left = new_node_left
+                node.right = new_node_right
+
     def _recursive_convert_each(self, node):
         if node is not None:
-            self.print_node_debug(node)
-            if node.value == '|' and node.left is not None and node.left.value == '&' and node.right is not None:
-                if node.right.value in self.allowed_vars:
-                    self._replace_case_1(node)
-                elif node.right.value == '&':
-                    self._replace_case_2(node)
-                else:
-                    print(f"{C_RED}Warning: check in {self.nnf} : {node.right.value}")
-                    # raise ValueError(f"{C_RED}Error: check in {self.nnf} : {node.right.value}")
+            # self.print_node_debug(node)
+            if node.value == '&':
+                self._associative_and(node)
+            elif node.value == '|':
+                if node.left and node.left.value == '|' or node.right and node.right.value == '|':
+                    self._associative_or(node)
+                elif node.right and node.left and node.left.value == '&':
+                    if node.right.value == '&':
+                        self._replace_case_2(node)
+                    elif node.right.value in self.allowed_vars or node.right.value == '!':
+                        self._replace_case_1(node)
+                    else:
+                        print(f"{C_RED}Warning: check in {self.nnf} : {node.right.value}")
+                        # raise ValueError(f"{C_RED}Error: check in {self.nnf} : {node.right.value}")
             self._recursive_convert_each(node.left)
             self._recursive_convert_each(node.right)
         return self.ast
@@ -582,6 +599,7 @@ class RPNtoCNF:
 
     def convert_and_get_cnf_formula(self):
         # return self.nnf
+        print(C_GREEN, self.nnf, C_RES)
         self._convert_to_cnf()
         return self._recursive_to_cnf_formula(self.ast.node)
 
@@ -620,10 +638,14 @@ class RPNtoCNF:
 
 
 def main():
-    # npi_inputs = ["AB=", "AB>", "AB^", "AB|", "AB&"]
-    npi_inputs = ["AB^"]
-    npi_inputs = ["BC&A|"] # case 1
-    npi_inputs = ["AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|"] # case 2
+    npi_inputs = [
+        # "AB=", "AB>", "AB^", "AB|", "AB&", # simple
+        # "AB&!", "AB|!", "AB|C&", "AB|C|D|", "AB&C&D&", "AB&!C!|", "AB|!C!&", # subject
+        # "BC&A|", # case 1
+        # "AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|", "AB&A!A&|", "B!B&A!A&|", # case 2
+        "AB^", "B!B&A!A&|" # still wrong
+    ] 
+    # npi_inputs = ["BC&A|"] # case 1
     for npi in npi_inputs:
         try:
             converter = RPNtoCNF(GenericRpn(npi))
