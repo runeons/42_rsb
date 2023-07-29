@@ -1,6 +1,7 @@
 C_GREEN = "\033[92m"
 C_RED = "\033[91m"
 C_YELLOW = "\033[33m"
+C_REPLACE = "\033[33m"
 C_BLUE = "\033[34m"
 C_RES = "\033[0m"
 
@@ -522,7 +523,7 @@ class RPNtoCNF:
             node.right = new_node_right
 
     def _associative_and(self, node):
-        print(C_YELLOW, "_associative_and", C_RES)
+        print(C_REPLACE, "_associative_and", C_RES)
         if node is not None:
             if node.left and node.left.value == '&' and node.right and node.right.value == '&':
                 self._associative_and(node.left)
@@ -542,7 +543,7 @@ class RPNtoCNF:
                 node.right = new_node_right
 
     def _associative_or(self, node):
-        print(C_YELLOW, "_associative_or", C_RES)
+        print(C_REPLACE, "_associative_or", C_RES)
         if node is not None:
             if node.left and node.left.value == '|' and node.right and node.right.value == '|':
                 self._associative_or(node.left)
@@ -559,6 +560,52 @@ class RPNtoCNF:
                 new_node_right = Node('|', left=node.left.right, right=node.right)
                 node.left = new_node_left
                 node.right = new_node_right
+
+    def _replace_conj_dist(self, node):
+        if node is not None:
+            print(C_REPLACE, "_replace_conj_dist", C_RES)
+            pass
+        
+    def _replace_left_disj_dist(self, node):
+        if node is not None:
+            print(C_REPLACE, "_replace_left_disj_dist", C_RES)
+            node.value = '&'
+            new_node_left = Node('|', left=node.left.left, right=node.right) # diff from case_1
+            new_node_right = Node('|', left=node.left.right, right=node.right)
+            node.left = new_node_left
+            node.right = new_node_right
+
+    def _replace_right_disj_dist(self, node):
+        if node is not None:
+            print(C_REPLACE, "_replace_right_disj_dist", C_RES)
+            # self.print_node_debug(node)
+            node.value = '&'
+            new_node_left = Node('|', left=node.left, right=node.right.left)
+            new_node_right = Node('|', left=node.left, right=node.right.right)
+            node.left = new_node_left
+            node.right = new_node_right
+
+    # def _recursive_convert_each(self, node):
+    #     if node is not None:
+    #         # self.print_node_debug(node)
+    #         ### associativity ###
+    #         if node.value == '&':
+    #             if node.left and node.left.value == '&' or node.right and node.right.value == '&':
+    #                 self._associative_and(node)
+    #         elif node.value == '|':
+    #             if node.left and node.left.value == '|' or node.right and node.right.value == '|':
+    #                 self._associative_or(node)
+    #         ### distributivity ###
+    #         if node.value == '|':
+    #             if node.left and node.left.value == '&' and node.right and node.right.value == '&':
+    #                 self._replace_conj_dist(node)
+    #             elif node.right and node.left and node.left.value == '&':
+    #                 self._replace_right_disj_dist(node)
+    #             elif node.left and node.right and node.right.value == '&':
+    #                 self._replace_left_disj_dist(node)
+    #         self._recursive_convert_each(node.left)
+    #         self._recursive_convert_each(node.right)
+    #     return self.ast
 
     def _recursive_convert_each(self, node):
         if node is not None:
@@ -639,11 +686,11 @@ class RPNtoCNF:
 
 def main():
     npi_inputs = [
-        # "AB=", "AB>", "AB^", "AB|", "AB&", # simple
-        # "AB&!", "AB|!", "AB|C&", "AB|C|D|", "AB&C&D&", "AB&!C!|", "AB|!C!&", # subject
-        # "BC&A|", # case 1
-        # "AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|", "AB&A!A&|", "B!B&A!A&|", # case 2
-        "AB^", "B!B&A!A&|" # still wrong
+        "AB=", "AB>", "AB^", "AB|", "AB&", # simple
+        "AB&!", "AB|!", "AB|C&", "AB|C|D|", "AB&C&D&", "AB&!C!|", "AB|!C!&", # subject
+        "BC&A|", # case 1
+        "AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|", "AB&A!A&|", "B!B&A!A&|", # case 2
+        # "AB^", "B!B&A!A&|" # still wrong
     ] 
     # npi_inputs = ["BC&A|"] # case 1
     for npi in npi_inputs:
