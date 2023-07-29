@@ -10,6 +10,20 @@ class Node:
         self.left = left
         self.right = right
 
+
+    def __eq__(self, other):
+        if not isinstance(other, Node):
+            return False
+        n_eq = self.value == other.value
+        l_eq = self.left == other.left if self.left and other.left else self.left is other.left
+        r_eq = self.right == other.right if self.right and other.right else self.right is other.right
+        return n_eq and l_eq and r_eq
+        # return (
+        #     self.value == other.value and
+        #     self.left == other.left and
+        #     self.right == other.right
+        # )
+
 class BooleanRpn:
     def __init__(self, inp):
         self.input = inp
@@ -461,6 +475,7 @@ class RPNtoCNF:
             print(C_YELLOW, "l=", node.left.value, C_RES)
         if node.right is not None:
             print(C_YELLOW, "r=", node.right.value, C_RES)
+        print()
 
     ################ convert to cnf ################
 
@@ -473,22 +488,63 @@ class RPNtoCNF:
             node.left = new_node_left
             node.right = new_node_right
 
-    def _replace_case_2(self, node):
+    def _find_common_node(self, node):
+        common_nodes = []
         if node is not None:
-            print(C_YELLOW, "CASE_2", C_RES)
-            print("chercher le commun aux feuilles de nodes.left et node.right")
             ll = node.left.left
             lr = node.left.right
             rl = node.right.left
             rr = node.right.right
-            print('ll:', ll.value, 'lr:', lr.value, 'rl:', rl.value, 'rr:', rr.value)
-            # print('ll:', ll.value, 'lr!:', lr.right.value, 'rl:!', rl.right.value, 'rr:', rr.value)
+            print('ll:', ll.value, 'lr!:', lr.value, 'rl:!', rl.value, 'rr:', rr.value)
+            self.print_node_debug(ll, "ll:\n")
+            self.print_node_debug(lr, "lr:\n")
+            self.print_node_debug(rl, "rl:\n")
+            self.print_node_debug(rr, "rr:\n")
+            if ll == lr:
+                common_nodes.append('ll and lr')
+            if ll == rl:
+                common_nodes.append('ll and rl')
+            if ll == rr:
+                common_nodes.append('ll and rr')
+            if lr == rl:
+                common_nodes.append('lr and rl')
+            if lr == rr:
+                common_nodes.append('lr and rr')
+            if rl == rr:
+                common_nodes.append('rl and rr')
+        return common_nodes
+
+    def _replace_case_2(self, node):
+        if node is not None:
+            print(C_YELLOW, "CASE_2", C_RES)
+            print("chercher le commun aux feuilles de nodes.left et node.right")
+            # common_nodes = self._find_common_node(node)
+            a = None
+            b = None
+            c = None
+            ll, lr, rl, rr = node.left.left, node.left.right, node.right.left, node.right.right
+            if (ll == rl):
+                a, b, c = ll, lr, rr
+            elif (ll == rr):
+                a, b, c = ll, lr, rl
+            elif (lr == rl):
+                a, b, c = lr, ll, rr
+            elif (lr == rr):
+                a, b, c = lr, ll, rl
+            else:
+                if (rl == rr):
+                    print(C_GREEN, "TO DO", C_RES)
+                    return
+                    # a, b, c = 
+                elif (ll == lr):
+                    print(C_GREEN, "TO DO", C_RES)
+                    return
+                    # a, b, c = ??
+                else:
+                    raise ValueError(f"{C_RED}Error:{C_RES} cannot simplify")
             node.value = '&'
-            new_node_left = Node('|', left=node.left.right, right=node.right.right)
-            new_node_right = node.left.left # or node.right.left
-            print(C_RED, node.left.left.value == node.right.left.value, C_RES)
-            print(C_RED, "node.left.left.value =", node.left.left.value, C_RES)
-            print(C_RED, "node.right.left.value =", node.right.left.value, C_RES)
+            new_node_left = Node('|', left=b, right=c)
+            new_node_right = a
             node.left = new_node_left
             node.right = new_node_right
 
@@ -501,23 +557,8 @@ class RPNtoCNF:
                 elif node.right.value == '&':
                     self._replace_case_2(node)
                 else:
-                    raise ValueError(f"{C_RED}Error: check in {self.nnf}")
-            # if node.value == '!':
-            #     if node.right is not None and node.right.value not in self.allowed_vars:
-            #         if node.right.value == '|':
-            #             self._replace_or_not(node)
-            #         elif node.right.value == '^':
-            #             self._replace_xor_not(node)
-            #         elif node.right.value == '&':
-            #             self._replace_and_not(node)
-            #         elif node.right.value == '>':
-            #             self._replace_implication_not(node)
-            #         elif node.right.value == '!':
-            #             self._replace_double_not(node)
-            #         elif node.right.value == '=':
-            #             self._replace_equals_not(node)
-            #         else:
-            #             raise ValueError(f"{C_RED}Error:{C_RES} character {node.right.value} should not be followed by not (!) in {self.get_nnf_formula()}")
+                    print(f"{C_RED}Warning: check in {self.nnf} : {node.right.value}")
+                    # raise ValueError(f"{C_RED}Error: check in {self.nnf} : {node.right.value}")
             self._recursive_convert_each(node.left)
             self._recursive_convert_each(node.right)
         return self.ast
@@ -581,6 +622,8 @@ class RPNtoCNF:
 def main():
     # npi_inputs = ["AB=", "AB>", "AB^", "AB|", "AB&"]
     npi_inputs = ["AB^"]
+    npi_inputs = ["BC&A|"] # case 1
+    npi_inputs = ["AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|"] # case 2
     for npi in npi_inputs:
         try:
             converter = RPNtoCNF(GenericRpn(npi))

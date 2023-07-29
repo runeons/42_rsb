@@ -143,9 +143,12 @@ class TruthTable:
 
 def main():
     str_inputs = [
-        "AB=", "AB>", "AB^", "AB|", "AB&",
-        "AB|C&!", "A!B!|", "ABAA||=",   # subject ex05
-        "AB&C!>",
+        # "AB=", "AB>", "AB^", "AB|", "AB&",
+        # "AB|C&!", "A!B!|", "ABAA||=",   # subject ex05
+        # "AB&C!>",
+        # tests ex06
+        # "AB^", "AB!&A!B&|", ""
+        # "B", "B!B!|A&", "AA|!B&"# tests ex06
         # "AB!", "!A", "AB&C!|>", "AA", "AB&c"          # wrong input
     ]
     for s in str_inputs:
