@@ -34,23 +34,20 @@ class ZCurve:
                     raise ValueError(f"{C_RED}Error: {C_RES}NOT INJECTIVE {res} for {x}, {y}")
                 all_results.add(res)
 
+    # 0x55555555 = 01010101 01010101 01010101 01010101
+    # 0x33333333 = 00110011 00110011 00110011 00110011
+    # 0x0F0F0F0F = 00001111 00001111 00001111 00001111
+    # 0x00FF00FF = 00000000 11111111 00000000 11111111
+
+    # Interleave lower 16 bits of x and y, so the bits of x are in the even positions and bits from y in the odd
     def z_curve_to_number(self, init_x, init_y):
         SHIFTS = [1, 2, 4, 8]
         MASKS = [0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF]        
-        # 0x55555555 = 01010101 01010101 01010101 01010101
-        # 0x33333333 = 00110011 00110011 00110011 00110011
-        # 0x0F0F0F0F = 00001111 00001111 00001111 00001111
-        # 0x00FF00FF = 00000000 11111111 00000000 11111111
-        x = init_x  # Interleave lower 16 bits of x and y, so the bits of x
-        y = init_y  # are in the even positions and bits from y in the odd
-        x = (x | (x << SHIFTS[3])) & MASKS[3]
-        x = (x | (x << SHIFTS[2])) & MASKS[2]
-        x = (x | (x << SHIFTS[1])) & MASKS[1]
-        x = (x | (x << SHIFTS[0])) & MASKS[0]
-        y = (y | (y << SHIFTS[3])) & MASKS[3]
-        y = (y | (y << SHIFTS[2])) & MASKS[2]
-        y = (y | (y << SHIFTS[1])) & MASKS[1]
-        y = (y | (y << SHIFTS[0])) & MASKS[0]
+        x = init_x  
+        y = init_y
+        for i in range(3, -1, -1): # start, end, jump
+            x = (x | (x << SHIFTS[i])) & MASKS[i]
+            y = (y | (y << SHIFTS[i])) & MASKS[i]
         result = x | (y << 1)
         # print(f"{C_BLUE}z_curve de {init_x}-{init_y} = {result}{C_RES}      x = {x} y = {y}")
         return result
@@ -86,6 +83,7 @@ def main():
             (41000, 65535),
             (42000, 0),
             (42000, 65535),
+            (65535, 65535),
         ]
         zcurve = ZCurve()
         for t in tests:
