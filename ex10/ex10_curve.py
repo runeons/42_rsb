@@ -18,10 +18,11 @@ class ZCurve:
     def normalise(self, raw_nb):
         return (raw_nb - self.y_min) / (self.y_max - self.y_min)
 
-    def map(self, x, y):
+    def map(self, x:int, y:int) -> float:
         for p in [x, y]:
             self.check_param(p)
         res = self.z_curve_to_number(x, y)
+        # return res
         return self.normalise(res)
 
     def check_injectivity(self, x_max=65536, y_max=65536):
@@ -34,10 +35,10 @@ class ZCurve:
                     raise ValueError(f"{C_RED}Error: {C_RES}NOT INJECTIVE {res} for {x}, {y}")
                 all_results.add(res)
 
-    # 0x55555555 = 01010101 01010101 01010101 01010101
-    # 0x33333333 = 00110011 00110011 00110011 00110011
-    # 0x0F0F0F0F = 00001111 00001111 00001111 00001111
-    # 0x00FF00FF = 00000000 11111111 00000000 11111111
+    # 0x55555555 = 01010101 01010101 01010101 01010101   0
+    # 0x33333333 = 00110011 00110011 00110011 00110011   1
+    # 0x0F0F0F0F = 00001111 00001111 00001111 00001111   2
+    # 0x00FF00FF = 00000000 11111111 00000000 11111111   3
 
     # Interleave lower 16 bits of x and y, so the bits of x are in the even positions and bits from y in the odd
     def z_curve_to_number(self, init_x, init_y):
@@ -79,10 +80,21 @@ def main():
             (0, 0),
             (0, 1),
             (0, 2),
-            (40000, 40000),
-            (41000, 65535),
-            (42000, 0),
-            (42000, 65535),
+            (0, 3),
+            (0, 4),
+            (0, 5),
+            (1, 0),
+            (1, 1),
+            (1, 2),
+            (1, 3),
+            (1, 4),
+            (1, 5),
+            (2, 1),
+            # (0, 2),
+            # (40000, 40000),
+            # (41000, 65535),
+            # (42000, 0),
+            # (42000, 65535),
             (65535, 65535),
         ]
         zcurve = ZCurve()
