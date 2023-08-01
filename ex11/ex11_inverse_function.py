@@ -105,9 +105,21 @@ class ZCurve:
     #     plt.title('Visualisation des coordonnées de la z-curve')
     #     plt.show()
 
+def map(x: int, y:int) -> float:
+    zcurve = ZCurve()
+    # zcurve.check_injectivity()
+    # zcurve.draw()
+    return zcurve.map(x, y)
+
+def reverse_map(f: float) -> (int, int):
+        zcurve = ZCurve()
+        x, y = zcurve.reverse_map(f)
+        # zcurve.reverse_draw()
+        return (x, y)
+
 def main():
     try:
-        tests = [
+        float_tests = [
             0, 
             1,
             0.9000000001164153,
@@ -121,16 +133,14 @@ def main():
             0.9900000004540197,
             0.6,
         ]
-        zcurve = ZCurve()
-        for t in tests:
-            x, y = zcurve.reverse_map(t)
-            check = zcurve.map(x, y)
-            if (t == check):
-                print(f"{C_GREEN}True: {t} = f({x}, {y}) = {check}{C_RES}")
+        for f in float_tests:
+            x, y = reverse_map(f)
+            check = map(x, y)
+            if (f == check):
+                print(f"{C_GREEN}True: {f} = f({x}, {y}) = {check}{C_RES}")
             else:
-                print(f"{C_RED}False: {t} = f({x}, {y}) != {check}{C_RES}")
+                print(f"{C_RED}False: {f} = f({x}, {y}) != {check}{C_RES}")
             print()
-        # zcurve.reverse_draw()
     except ValueError as e:
         print(e)
 

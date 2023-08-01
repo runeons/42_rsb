@@ -75,14 +75,20 @@ class BooleanRpn:
             self._print_node(node.left, depth - 2)
             self._print_node(node.right, depth + 2)
 
+def eval_formula(formula: str) -> bool:
+    ast = BooleanRpn(formula)
+    # ast.print()
+    return (ast.compute())
+
 def main():
-    str_inputs = ["10&", "10=", "10|", "11=", "11>", "1011||=", "10&!", "10=!", "10|!", "11=!", "11>!", "1011||=!"]
-    for s in str_inputs:
+    npi_inputs = ["10&", "10=", "10|", "11=", "11>", "1011||=", "10&!", "10=!", "10|!", "11=!", "11>!", "1011||=!"]
+    for npi in npi_inputs:
         try:
-            ast = BooleanRpn(s)
-            # ast.print()
-            result = ast.compute()
-            print(s, " => ", result)
+            res = eval_formula(npi)
+            if (res == True):
+                print(f"{C_GREEN}{npi}{C_RES} ==> {C_GREEN}{res}{C_RES}")
+            else:
+                print(f"{C_RED}{npi}{C_RES} ==> {C_RED}{res}{C_RES}")
         except ValueError as e:
             print(e)
 

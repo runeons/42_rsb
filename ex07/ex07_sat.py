@@ -208,16 +208,19 @@ class GenericRpn:
             self._print_node(node.left, depth - 2)
             self._print_node(node.right, depth + 2)
 
+def sat(formula: str) -> bool:
+        tt = TruthTable(formula)
+        res = tt.sat()
+        return res
+
 def main():
     npi_inputs = [
         "AB|", "AB&", "AA!&", "AA^", # subject
-        # "AB",
     ] 
     
     for npi in npi_inputs:
         try:
-            tt = TruthTable(npi)
-            res = tt.sat()
+            res = sat(npi)
             if (res == True):
                 print(f"{C_GREEN}{npi}{C_RES} ==> {C_GREEN}{res}{C_RES}")
             else:

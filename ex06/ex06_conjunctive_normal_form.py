@@ -617,6 +617,11 @@ class RPNtoCNF:
                     raise ValueError(f"{C_RED}Error:{C_RES} (&)) should always be at the end in cnf {nnf}")
         return True
 
+def conjunctive_normal_form(formula: str) -> str:
+    converter = RPNtoCNF(GenericRpn(formula))
+    cnf = converter.convert_and_get_cnf_formula()
+    converter.check_cnf_format(cnf)
+    return cnf
 
 def main():
     npi_inputs = [
@@ -655,14 +660,8 @@ def main():
     ] 
     for npi in npi_inputs:
         try:
-            converter = RPNtoCNF(GenericRpn(npi))
-            cnf = converter.convert_and_get_cnf_formula()
-            tt_npi = TruthTable(npi)
-            tt_cnf = TruthTable(cnf)
-            # tt_npi.print()
-            # tt_cnf.print()
-            converter.check_cnf_format(cnf)
-            if (tt_cnf.table == tt_npi.table):
+            cnf = conjunctive_normal_form(npi)
+            if (TruthTable(npi).table == TruthTable(cnf).table):
                 print(f"{C_GREEN}True:{C_RES} {npi}{C_GREEN} <=> {C_RES}{cnf}{C_RES}")
             else:
                 raise ValueError(f"{C_RED}False: {npi} can not give {cnf}{C_RES}")

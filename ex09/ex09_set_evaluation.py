@@ -110,7 +110,7 @@ class GenericRpn:
             self._print_node(node.left, depth - 2)
             self._print_node(node.right, depth + 2)
 
-def eval_set(formula: str, sets):
+def eval_set(formula: str, sets) -> set:
     ast = GenericRpn(formula, sets)
     ast.replace_var_with_sets()
     # ast.print()

@@ -26,11 +26,18 @@ class Powerset:
         for s in self.subsets:
             print(s)
 
+def powerset(s: int) -> set():
+    p = Powerset(s)
+    # p.print()
+    return p.subsets
+
 def main():
     sets_test = [{1, 2, 3}, {1, 2}, {1}, {1, 2, 8, 18}]
     for s in sets_test:
-        p = Powerset(s)
-        p.print()
+        ps = powerset(s)
+        print(C_GREEN, "Powerset of", s, C_RES)
+        for ss in ps:
+            print(ss)
 
 if (__name__ == "__main__"):
     main()

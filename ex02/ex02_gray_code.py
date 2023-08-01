@@ -2,7 +2,7 @@ C_GREEN = "\033[92m"
 C_RED = "\033[91m"
 C_RES = "\033[0m"
 
-def gray_code(a: int):
+def gray_code(a: int) -> int:
     calc = (a ^ (a << 1)) >> 1
     return calc
 

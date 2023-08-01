@@ -3,7 +3,7 @@ C_GREEN = "\033[92m"
 C_RED = "\033[91m"
 C_RES = "\033[0m"
 
-def adder(a: int, b: int):
+def adder(a: int, b: int) -> int:
     while (b != 0):
         carry = a & b
         addition = a ^ b
@@ -11,7 +11,7 @@ def adder(a: int, b: int):
         b = carry << 1
     return a
 
-def multiplier(a: int, b: int):
+def multiplier(a: int, b: int) -> int:
     add = 0
     while (b > 0):
         if (b & 1):

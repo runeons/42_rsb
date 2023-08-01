@@ -74,6 +74,12 @@ class ZCurve:
     #     plt.title(f"Z Curve for x=[{x_min}, {x_max}], y=[{y_min}, {y_max}]")
     #     plt.show()
 
+def map(x: int, y:int) -> float:
+    zcurve = ZCurve()
+    # zcurve.check_injectivity()
+    # zcurve.draw()
+    return zcurve.map(x, y)
+
 def main():
     try:
         tests = [
@@ -97,12 +103,10 @@ def main():
             # (42000, 65535),
             (65535, 65535),
         ]
-        zcurve = ZCurve()
         for t in tests:
-            unique_value = zcurve.map(t[0], t[1])
+            unique_value = map(t[0], t[1])
             print(unique_value)
-        # zcurve.check_injectivity()
-        # zcurve.draw()
+
     except ValueError as e:
         print(e)
 

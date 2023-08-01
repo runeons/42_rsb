@@ -147,21 +147,24 @@ class TruthTable:
             print(f"|-----", end='')
         print(f"|-----|")
 
+def print_truth_table(formula: str):
+    tt = TruthTable(formula)
+    tt.generate()
+    tt.print()
+
 def main():
-    str_inputs = [
+    npi_inputs = [
         "AB=", "AB>", "AB^", "AB|", "AB&",
-        "AB|C&!", "A!B!|", "ABAA||=", # subject ex05
-        "AB&C!>",
-        "AB^", "AB!&A!B&|", "",
-        "B", "B!B!|A&", "AA|!B&", # tests ex06
-        "AB!", "!A", "AB&C!|>", "AA", "AB&c",          # wrong input
-        "ABAA||=", "AB&CD&E||",
+    #     "AB|C&!", "A!B!|", "ABAA||=", # subject ex05
+    #     "AB&C!>",
+    #     "AB^", "AB!&A!B&|", "",
+    #     "B", "B!B!|A&", "AA|!B&", # tests ex06
+    #     "AB!", "!A", "AB&C!|>", "AA", "AB&c",          # wrong input
+    #     "ABAA||=", "AB&CD&E||",
     ]
-    for s in str_inputs:
+    for npi in npi_inputs:
         try:
-            tt = TruthTable(s)
-            tt.generate()
-            tt.print()
+            print_truth_table(npi)
         except ValueError as e:
             print(e)
 

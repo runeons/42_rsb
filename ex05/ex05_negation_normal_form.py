@@ -439,6 +439,12 @@ class RPNtoNNF:
                     raise ValueError(f"{C_RED}Error:{C_RES} not (!) should always follow a variable in nnf {nnf}")
         return True
 
+def negation_normal_form(formula: str) -> str:
+        converter = RPNtoNNF(GenericRpn(formula))
+        nnf = converter.convert_and_get_nnf_formula()
+        converter.check_nnf_format(nnf)
+        return nnf
+
 def main():
     npi_inputs = [
         "AB=", "AB>", "AB^", "AB|", "AB&", # simple
@@ -477,16 +483,8 @@ def main():
     
     for npi in npi_inputs:
         try:
-            converter = RPNtoNNF(GenericRpn(npi))
-            nnf = converter.convert_and_get_nnf_formula()
-            # converter.print_infix_formula()
-            # converter.print()/
-            tt_npi = TruthTable(npi)
-            tt_nnf = TruthTable(nnf)
-            # tt_npi.print()
-            # tt_nnf.print()
-            converter.check_nnf_format(nnf)
-            if (tt_nnf.table == tt_npi.table):
+            nnf = negation_normal_form(npi)
+            if (TruthTable(nnf).table == TruthTable(npi).table):
                 print(f"{C_GREEN}True:{C_RES} {npi}{C_GREEN} <=> {C_RES}{nnf}{C_RES}")
             else:
                 raise ValueError(f"{C_RED}False: {npi} can not give {nnf}{C_RES}")
