@@ -23,6 +23,8 @@ class BooleanRpn:
 
     def create(self):
         chars = list(self.input)
+        if len(chars) == 0:
+            raise ValueError(f"{C_RED}Error:{C_RES} empty formula")
         for c in chars:
             if c in self.allowed_vars:
                 self.vars_nb += 1
@@ -44,8 +46,10 @@ class BooleanRpn:
                 self.stack.append(self.node)
             else:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
-        if self.operators_nb == 0 and self.vars_nb > 1:
-            raise ValueError(f"{C_RED}Error:{C_RES} there should be at least one operator within '&', '|', '^', '>', '=' in {self.input}")
+        if len(self.stack) > 1:
+            raise ValueError(f"{C_RED}Error:{C_RES} invalid formula {self.input}")
+        # if self.operators_nb == 0 and self.vars_nb > 1:
+            # raise ValueError(f"{C_RED}Error:{C_RES} there should be at least one operator within '&', '|', '^', '>', '=' in {self.input}")
 
     def compute(self, node=None):
         if node is None:
@@ -82,21 +86,33 @@ class BooleanRpn:
 class TruthTable:
     def __init__(self, inp):
         self.input = inp
-        self.variables = self.get_variables()
+        self.variables = self._get_variables()
         self.var_nb = len(self.variables)
         self.table = []
 
-    def get_variables(self):
+    def _get_variables(self):
         variables = set()
         for c in list(self.input):
             if c.isupper() and c not in variables:
                 variables.add(c)
         return sorted(variables)
+
+    ################ compute truth table ################
+
+    def _replace_vars(self, comb_dict):
+        new_input = self.input
+        for letter, boolean in comb_dict.items():
+            new_input = new_input.replace(letter, str(int(boolean)))
+        return new_input
     
-    def generate(self):
-        combinations = self._generate_combinations()
-        for cb in combinations:
-            self._compute(cb)
+    def _compute(self, combination):
+        comb_dict = dict(zip(self.variables, combination))
+        new_input = self._replace_vars(comb_dict)
+        ast = BooleanRpn(new_input)
+        res = ast.compute()
+        self.table.append((comb_dict, res))
+
+    ################ generate combinations ################
 
     def _generate_combinations(self):
         combinations = list(self._get_combinations())
@@ -110,18 +126,14 @@ class TruthTable:
                 combination.append(bool(is_set))
             yield combination # generateur, append implicite
 
-    def _compute(self, combination):
-        comb_dict = dict(zip(self.variables, combination))
-        new_input = self._replace_vars(comb_dict)
-        ast = BooleanRpn(new_input)
-        res = ast.compute()
-        self.table.append((comb_dict, res))
+    ################ main function ################
 
-    def _replace_vars(self, comb_dict):
-        new_input = self.input
-        for letter, boolean in comb_dict.items():
-            new_input = new_input.replace(letter, str(int(boolean)))
-        return new_input
+    def generate(self):
+        combinations = self._generate_combinations()
+        for cb in combinations:
+            self._compute(cb)
+
+    ################ print truth table ################
 
     def print(self):
         print(C_BLUE + "Print truth table: " + C_YELLOW + self.input, C_RES)
@@ -143,13 +155,13 @@ class TruthTable:
 
 def main():
     str_inputs = [
-        # "AB=", "AB>", "AB^", "AB|", "AB&",
-        # "AB|C&!", "A!B!|", "ABAA||=",   # subject ex05
-        # "AB&C!>",
-        # tests ex06
-        # "AB^", "AB!&A!B&|", ""
-        # "B", "B!B!|A&", "AA|!B&"# tests ex06
-        # "AB!", "!A", "AB&C!|>", "AA", "AB&c"          # wrong input
+        "AB=", "AB>", "AB^", "AB|", "AB&",
+        "AB|C&!", "A!B!|", "ABAA||=", # subject ex05
+        "AB&C!>",
+        "AB^", "AB!&A!B&|", "",
+        "B", "B!B!|A&", "AA|!B&", # tests ex06
+        "AB!", "!A", "AB&C!|>", "AA", "AB&c",          # wrong input
+        "ABAA||=", "AB&CD&E||",
     ]
     for s in str_inputs:
         try:

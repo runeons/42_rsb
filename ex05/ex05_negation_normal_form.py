@@ -21,6 +21,8 @@ class BooleanRpn:
 
     def create(self):
         chars = list(self.input)
+        if len(chars) == 0:
+            raise ValueError(f"{C_RED}Error:{C_RES} empty formula")
         for c in chars:
             if c in self.allowed_vars:
                 self.node = Node(int(c))
@@ -40,6 +42,9 @@ class BooleanRpn:
                 self.stack.append(self.node)
             else:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
+        if len(self.stack) > 1:
+            raise ValueError(f"{C_RED}Error:{C_RES} invalid formula {self.input}")
+
     
     def compute(self, node=None):
         if node is None:
@@ -78,12 +83,12 @@ class BooleanRpn:
 class TruthTable:
     def __init__(self, inp):
         self.input = inp
-        self.variables = self.get_variables()
+        self.variables = self._get_variables()
         self.var_nb = len(self.variables)
         self.table = []
         self.generate()
 
-    def get_variables(self):
+    def _get_variables(self):
         variables = set()
         for c in list(self.input):
             if c.isupper() and c not in variables:
@@ -159,6 +164,8 @@ class GenericRpn:
 
     def create(self):
         chars = list(self.input)
+        if len(chars) == 0:
+            raise ValueError(f"{C_RED}Error:{C_RES} empty formula")
         for c in chars:
             if c in self.allowed_vars:
                 self.vars_nb += 1
@@ -182,8 +189,8 @@ class GenericRpn:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
         if len(self.stack) > 1:
             raise ValueError(f"{C_RED}Error:{C_RES} invalid formula {self.input}")
-        if self.operators_nb == 0 and self.vars_nb > 1:
-            raise ValueError(f"{C_RED}Error:{C_RES} there should be at least one operator within '&', '|', '^', '>', '=' in {self.input}")
+        # if self.operators_nb == 0 and self.vars_nb > 1:
+        #     raise ValueError(f"{C_RED}Error:{C_RES} there should be at least one operator within '&', '|', '^', '>', '=' in {self.input}")
 
     ################ print tree ################
 
@@ -471,7 +478,7 @@ def main():
         "A", "A!",
         "AB|C&!", "A!B!|", "ABAA||=",   # subject
         "AB&C!>", "BC&A|",
-        "BC&A!", "AB!", "!A", "AB&C!|>", "AA", "AB&c"          # wrong input        
+        "BC&A!", "AB!", "!A", "AB&C!|>", "AA", "AB&c", ""          # wrong input        
     ] 
     
     for npi in npi_inputs:
