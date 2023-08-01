@@ -479,153 +479,85 @@ class RPNtoCNF:
         print()
 
     ################ convert to cnf ################
-
-    def _replace_case_2(self, node):
+    def _associativity_or(self, node):
         if node is not None:
-            print(C_YELLOW, "CASE_2", C_RES)
-            print("chercher le commun aux feuilles de nodes.left et node.right")
-            a = None
-            b = None
-            c = None
-            ll, lr, rl, rr = node.left.left, node.left.right, node.right.left, node.right.right
-            if (ll == rl):
-                a, b, c = ll, lr, rr
-            elif (ll == rr):
-                a, b, c = ll, lr, rl
-            elif (lr == rl):
-                a, b, c = lr, ll, rr
-            elif (lr == rr):
-                a, b, c = lr, ll, rl
-            else:
-                if (rl == rr):
-                    print(C_GREEN, "TO DO", C_RES)
-                    return
-                    # a, b, c = 
-                elif (ll == lr):
-                    print(C_GREEN, "TO DO", C_RES)
-                    return
-                    # a, b, c = ??
-                else:
-                    raise ValueError(f"{C_RED}Error:{C_RES} cannot simplify")
-            node.value = '&'
-            new_node_left = Node('|', left=b, right=c)
-            new_node_right = a
-            node.left = new_node_left
-            node.right = new_node_right
-
-    def _replace_case_1(self, node):
-        if node is not None:
-            print(C_YELLOW, "CASE_1", C_RES)
-            node.value = '&'
-            new_node_left = Node('|', left=node.right, right=node.left.left)
-            new_node_right = Node('|', left=node.right, right=node.left.right)
-            node.left = new_node_left
-            node.right = new_node_right
-
-    def _associative_and(self, node):
-        print(C_REPLACE, "_associative_and", C_RES)
-        if node is not None:
-            if node.left and node.left.value == '&' and node.right and node.right.value == '&':
-                self._associative_and(node.left)
-                self._associative_and(node.right)
-            elif node.left and node.left.value == '&':
-                self._associative_and(node.left)
-            elif node.right and node.right.value == '&':
-                self._associative_and(node.right)
+            if node.value == '|' and node.left and node.left.value == '|':
+                new_node_left = node.left.left
+                new_node_right = Node('|', node.left.right, node.right)
+                node.left = new_node_left
+                node.right = new_node_right
             else:
                 return
-            if node.left and node.right:
+            self._associativity_or(node)
+
+    def _associativity_and(self, node):
+        if node is not None:
+            if node.value == '&' and node.left and node.left.value == '&':
+                new_node_left = node.left.left
+                new_node_right = Node('&', node.left.right, node.right)
+                node.left = new_node_left
+                node.right = new_node_right
+            else:
+                return
+            self._associativity_and(node)
+
+    def _conjunction_distributivity(self, node):
+        pass
+
+    def _ldd(self, node):
+        if node is not None:
+            if node.value == '|' and node.right and node.right.value == '&':
                 node.value = '&'
-                new_node_left = node.left.left
-                new_node_right = Node('&', left=node.left.right, right=node.right) # penche a gauche
-                # new_node_right = Node('&', left=node.left.right, right=node.right.right) # pour pencher a gauche
+                new_node_left = Node('|', node.left, node.right.left)
+                new_node_right = Node('|', node.left, node.right.right)
                 node.left = new_node_left
                 node.right = new_node_right
 
-    def _associative_or(self, node):
-        print(C_REPLACE, "_associative_or", C_RES)
+    def _rdd(self, node):
         if node is not None:
-            if node.left and node.left.value == '|' and node.right and node.right.value == '|':
-                self._associative_or(node.left)
-                self._associative_or(node.right)
-            elif node.left and node.left.value == '|':
-                self._associative_or(node.left)
-            elif node.right and node.right.value == '|':
-                self._associative_or(node.right)
-            else:
-                return
-            if node.left and node.right:
-                node.value = '|'
-                new_node_left = node.left.left
-                new_node_right = Node('|', left=node.left.right, right=node.right)
+            if node.value == '|' and node.left and node.left.value == '&':
+                node.value = '&'
+                new_node_left = Node('|', node.left.left, node.right)
+                new_node_right = Node('|', node.left.right, node.right)
                 node.left = new_node_left
                 node.right = new_node_right
 
-    def _replace_conj_dist(self, node):
+    def _distributivity(self, node):
         if node is not None:
-            print(C_REPLACE, "_replace_conj_dist", C_RES)
-            pass
-        
-    def _replace_left_disj_dist(self, node):
-        if node is not None:
-            print(C_REPLACE, "_replace_left_disj_dist", C_RES)
-            node.value = '&'
-            new_node_left = Node('|', left=node.left.left, right=node.right) # diff from case_1
-            new_node_right = Node('|', left=node.left.right, right=node.right)
-            node.left = new_node_left
-            node.right = new_node_right
-
-    def _replace_right_disj_dist(self, node):
-        if node is not None:
-            print(C_REPLACE, "_replace_right_disj_dist", C_RES)
-            # self.print_node_debug(node)
-            node.value = '&'
-            new_node_left = Node('|', left=node.left, right=node.right.left)
-            new_node_right = Node('|', left=node.left, right=node.right.right)
-            node.left = new_node_left
-            node.right = new_node_right
-
-    # def _recursive_convert_each(self, node):
-    #     if node is not None:
-    #         # self.print_node_debug(node)
-    #         ### associativity ###
-    #         if node.value == '&':
-    #             if node.left and node.left.value == '&' or node.right and node.right.value == '&':
-    #                 self._associative_and(node)
-    #         elif node.value == '|':
-    #             if node.left and node.left.value == '|' or node.right and node.right.value == '|':
-    #                 self._associative_or(node)
-    #         ### distributivity ###
-    #         if node.value == '|':
-    #             if node.left and node.left.value == '&' and node.right and node.right.value == '&':
-    #                 self._replace_conj_dist(node)
-    #             elif node.right and node.left and node.left.value == '&':
-    #                 self._replace_right_disj_dist(node)
-    #             elif node.left and node.right and node.right.value == '&':
-    #                 self._replace_left_disj_dist(node)
-    #         self._recursive_convert_each(node.left)
-    #         self._recursive_convert_each(node.right)
-    #     return self.ast
+            if node.value == '|':
+                # if node.left and node.left.value == '&' and node.right and node.right.value == '&':
+                    # self._conjunction_distributivity(node)
+                if node.left and node.left.value == '&':
+                    self._rdd(node)
+                elif node.right and node.right.value == '&':
+                    self._ldd(node)
 
     def _recursive_convert_each(self, node):
         if node is not None:
-            # self.print_node_debug(node)
-            if node.value == '&':
-                self._associative_and(node)
-            elif node.value == '|':
-                if node.left and node.left.value == '|' or node.right and node.right.value == '|':
-                    self._associative_or(node)
-                elif node.right and node.left and node.left.value == '&':
-                    if node.right.value == '&':
-                        self._replace_case_2(node)
-                    elif node.right.value in self.allowed_vars or node.right.value == '!':
-                        self._replace_case_1(node)
-                    else:
-                        print(f"{C_RED}Warning: check in {self.nnf} : {node.right.value}")
-                        # raise ValueError(f"{C_RED}Error: check in {self.nnf} : {node.right.value}")
+            if node.value == '|' and node.left and node.left.value == '|':
+                self._associativity_or(node)
+            elif node.value == '&' and node.left and node.left.value == '&':
+                self._associativity_and(node)
+            elif (node.value == '|'):
+                self._distributivity(node)
             self._recursive_convert_each(node.left)
             self._recursive_convert_each(node.right)
+            if node.value == '|' and node.left and node.left.value == '|':
+                self._associativity_or(node)
+            elif node.value == '&' and node.left and node.left.value == '&':
+                self._associativity_and(node)
         return self.ast
+
+
+    def _convert_to_cnf(self):
+        self._recursive_convert_each(self.ast.node)
+
+    def convert_and_get_cnf_formula(self):
+        # return self.nnf
+        print(C_GREEN, self.nnf, C_RES)
+        self._convert_to_cnf()
+        return self._recursive_to_cnf_formula(self.ast.node)
+
 
     def _recursive_to_cnf_formula(self, node):
         if node is None:
@@ -640,15 +572,6 @@ class RPNtoCNF:
         if node.value in ['&', '|', '^', '>', '=']:
             return f"{l}{r}{node.value}"
         return ""
-
-    def _convert_to_cnf(self):
-        self._recursive_convert_each(self.ast.node)
-
-    def convert_and_get_cnf_formula(self):
-        # return self.nnf
-        print(C_GREEN, self.nnf, C_RES)
-        self._convert_to_cnf()
-        return self._recursive_to_cnf_formula(self.ast.node)
 
     ################ print tree ################
 
@@ -690,13 +613,25 @@ def main():
         "AB&!", "AB|!", "AB|C&", "AB|C|D|", "AB&C&D&", "AB&!C!|", "AB|!C!&", # subject
         "BC&A|", # case 1
         "AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|", "AB&A!A&|", "B!B&A!A&|", # case 2
-        # "AB^", "B!B&A!A&|" # still wrong
+        "AB^", "B!B&A!A&|" # still wrong
+
+        "AB|C|D|", "AB|CD||", "AB&C&D&", "AB&CD&&",
+        "AB|C|D|", "AB|CD||", "ABC||D|", "ABC|D||", "ABCD|||",  # associativity 4 vars
+        "AB&C&D&", "AB&CD&&", "ABC&&D&", "ABC&D&&", "ABCD&&&",  # associativity 4 vars
+        "AB|C|", "ABC||",  # associativity 3 vars
+        "AB&C&", "ABC&&",  # associativity 3 vars
+        "ABC&|", "AB|AC|&", # distributivity ldd
+        "BCA&|", "BA|CA|&", # distributivity rdd
+        "AB&AC&|", "ABC|&", # distributivity lcd
+        "AB&AC&|" # tmp lcd
+        "BA&CA&|", "BCA|&", # distributivity rcd
     ] 
     # npi_inputs = ["BC&A|"] # case 1
     for npi in npi_inputs:
         try:
             converter = RPNtoCNF(GenericRpn(npi))
             cnf = converter.convert_and_get_cnf_formula()
+            print(C_GREEN, "final cnf: ", cnf, C_RES)
             tt_npi = TruthTable(npi)
             tt_cnf = TruthTable(cnf)
             # tt_npi.print()
@@ -705,7 +640,9 @@ def main():
             if (tt_cnf.table == tt_npi.table):
                 print(C_GREEN, "True:", npi, "gives", cnf, C_RES)
             else:
+                raise ValueError(C_RED, "False:", npi, "can not give", cnf, C_RES)
                 print(C_RED, "False:", npi, "can not give", cnf, C_RES)
+            print()
         except ValueError as e:
             print(e)
 
