@@ -109,14 +109,6 @@ class TruthTable:
         ast = BooleanRpn(new_input)
         res = ast.compute()
         self.table.append((comb_dict, res))
-    
-    def _compute_sat(self, combination):
-        comb_dict = dict(zip(self.variables, combination))
-        new_input = self._replace_vars(comb_dict)
-        ast = BooleanRpn(new_input)
-        res = ast.compute()
-        self.table.append((comb_dict, res))
-        return res
 
     ################ generate combinations ################
 
@@ -137,15 +129,14 @@ class TruthTable:
     def generate(self):
         combinations = self._generate_combinations()
         for cb in combinations:
-            self._compute_sat(cb)
+            self._compute(cb)
 
-    def generate_sat(self):
-        combinations = self._generate_combinations()
-        for cb in combinations:
-            if (self._compute_sat(cb) == True):
+    def sat(self):
+        self.generate()
+        for _, res in self.table:
+            if (res == True):
                 return True
         return False
-
 
     ################ print truth table ################
 
@@ -174,12 +165,7 @@ class GenericRpn:
         self.operators = set(['!', '&', '|', '^', '>', '='])
         self.stack = []
         self.node = None
-        self.operators_nb = 0
-        self.vars_nb = 0
         self.create()
-
-    def compute_sat(self):
-        pass
 
     def create(self):
         chars = list(self.input)
@@ -187,7 +173,6 @@ class GenericRpn:
             raise ValueError(f"{C_RED}Error:{C_RES} empty formula")
         for c in chars:
             if c in self.allowed_vars:
-                self.vars_nb += 1
                 self.node = Node(c)
                 self.stack.append(self.node)
             elif c in self.operators:
@@ -197,7 +182,6 @@ class GenericRpn:
                     right = self.stack.pop()
                     self.node = Node(c, right=right)
                 else:
-                    self.operators_nb += 1
                     if len(self.stack) < 2:
                         raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '{c}' in {self.input}")
                     right = self.stack.pop()
@@ -208,8 +192,6 @@ class GenericRpn:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
         if len(self.stack) > 1:
             raise ValueError(f"{C_RED}Error:{C_RES} invalid formula {self.input}")
-        if self.operators_nb == 0 and self.vars_nb > 1:
-            raise ValueError(f"{C_RED}Error:{C_RES} there should be at least one operator within '&', '|', '^', '>', '=' in {self.input}")
 
     ################ print tree ################
 
@@ -218,12 +200,6 @@ class GenericRpn:
         self._print_node(self.node, depth)
 
     def _print_node(self, node, depth):
-        # if node is not None:
-        #     print(C_GREEN, "Node : ",  node.value, C_RES)
-        #     if node.left is not None:
-        #         print(C_GREEN, "Left : ", node.left.value, C_RES)
-        #     if node.right is not None:
-        #         print(C_GREEN, "Right : ", node.right.value, C_RES)
         if node is not None:
             if node.value == '!':
                 print("  " * depth, C_YELLOW, node.value, C_RES)
@@ -234,13 +210,14 @@ class GenericRpn:
 
 def main():
     npi_inputs = [
-        "AB|", "AB&", "AA!&", "AA^" # subject
+        "AB|", "AB&", "AA!&", "AA^", # subject
+        # "AB",
     ] 
     
     for npi in npi_inputs:
         try:
             tt = TruthTable(npi)
-            res = tt.generate_sat()
+            res = tt.sat()
             if (res == True):
                 print(f"{C_GREEN}{npi}{C_RES} ==> {C_GREEN}{res}{C_RES}")
             else:
