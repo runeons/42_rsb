@@ -55,6 +55,9 @@ class BooleanRpn:
                 self.stack.append(self.node)
             else:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
+        if len(self.stack) > 1:
+            raise ValueError(f"{C_RED}Error:{C_RES} invalid formula (BooleanRpn) {self.input}")
+
     
     def compute(self, node=None):
         if node is None:
@@ -195,6 +198,8 @@ class GenericRpn:
                 self.stack.append(self.node)
             else:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
+        if len(self.stack) > 1:
+            raise ValueError(f"{C_RED}Error:{C_RES} invalid formula (GenericRpn) {self.input}")
         if self.operators_nb == 0 and self.vars_nb > 1:
             raise ValueError(f"{C_RED}Error:{C_RES} there should be at least one operator within '&', '|', '^', '>', '=' in {self.input}")
 
@@ -542,19 +547,15 @@ class RPNtoCNF:
                 self._distributivity(node)
             self._recursive_convert_each(node.left)
             self._recursive_convert_each(node.right)
-            if node.value == '|' and node.left and node.left.value == '|':
-                self._associativity_or(node)
-            elif node.value == '&' and node.left and node.left.value == '&':
-                self._associativity_and(node)
         return self.ast
 
 
     def _convert_to_cnf(self):
-        self._recursive_convert_each(self.ast.node)
+        while not self.is_correct_cnf_format(self._recursive_to_cnf_formula(self.ast.node)):
+            self._recursive_convert_each(self.ast.node)
 
     def convert_and_get_cnf_formula(self):
-        # return self.nnf
-        print(C_GREEN, self.nnf, C_RES)
+        # print(C_YELLOW, "npi:", self.ast.input, "nnf:", self.nnf, C_RES)
         self._convert_to_cnf()
         return self._recursive_to_cnf_formula(self.ast.node)
 
@@ -594,6 +595,18 @@ class RPNtoCNF:
         print(C_BLUE + "Print CNF tree: init input " + C_YELLOW + self.init_ast.input, C_RES)
         self._print_node(self.ast.node, depth)
 
+    def is_correct_cnf_format(self, nnf: str):
+        for i in range(len(nnf)):
+            if nnf[i] not in self.end_operators and nnf[i] not in self.allowed_vars:
+                return False
+            elif (nnf[i] == '!'):
+                if i <= 0 or nnf[i - 1] not in self.allowed_vars:
+                    return False
+            elif (nnf[i] == '&'):
+                if i != (len(nnf) - 1) and nnf[i + 1] != '&':
+                    return False
+        return True
+
     def check_cnf_format(self, nnf: str):
         for i in range(len(nnf)):
             if nnf[i] not in self.end_operators and nnf[i] not in self.allowed_vars:
@@ -613,8 +626,7 @@ def main():
         "AB&!", "AB|!", "AB|C&", "AB|C|D|", "AB&C&D&", "AB&!C!|", "AB|!C!&", # subject
         "BC&A|", # case 1
         "AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|", "AB&A!A&|", "B!B&A!A&|", # case 2
-        "AB^", "B!B&A!A&|" # still wrong
-
+        "AB^", "B!B&A!A&|",
         "AB|C|D|", "AB|CD||", "AB&C&D&", "AB&CD&&",
         "AB|C|D|", "AB|CD||", "ABC||D|", "ABC|D||", "ABCD|||",  # associativity 4 vars
         "AB&C&D&", "AB&CD&&", "ABC&&D&", "ABC&D&&", "ABCD&&&",  # associativity 4 vars
@@ -623,26 +635,32 @@ def main():
         "ABC&|", "AB|AC|&", # distributivity ldd
         "BCA&|", "BA|CA|&", # distributivity rdd
         "AB&AC&|", "ABC|&", # distributivity lcd
-        "AB&AC&|" # tmp lcd
+        "AB&AC&|", # tmp lcd
         "BA&CA&|", "BCA|&", # distributivity rcd
+        "AB&CD&E&&", # more vars
+        "AB&CD&E||",
+        "AB&CD&E&&",
+        "FK&G&B&CD&E&&",
+        "FK&G&B&CD&E&|",
+        "A!B|", "A!B!&", "A!!B!!>", "AB!^", "AB>A>", "AB>A>B>",
+        "A", "A!",
+        "AB|C&!", "A!B!|", "ABAA||=",   # subject
+        "AB&C!>", "BC&A|",
+        "BC&A!", "AB!", "!A", "AB&C!|>", "AA", "AB&c"          # wrong input        
     ] 
-    # npi_inputs = ["BC&A|"] # case 1
     for npi in npi_inputs:
         try:
             converter = RPNtoCNF(GenericRpn(npi))
             cnf = converter.convert_and_get_cnf_formula()
-            print(C_GREEN, "final cnf: ", cnf, C_RES)
             tt_npi = TruthTable(npi)
             tt_cnf = TruthTable(cnf)
             # tt_npi.print()
             # tt_cnf.print()
             converter.check_cnf_format(cnf)
             if (tt_cnf.table == tt_npi.table):
-                print(C_GREEN, "True:", npi, "gives", cnf, C_RES)
+                print(f"{C_GREEN}True:{C_RES} {npi}{C_GREEN} <=> {C_RES}{cnf}{C_RES}")
             else:
-                raise ValueError(C_RED, "False:", npi, "can not give", cnf, C_RES)
-                print(C_RED, "False:", npi, "can not give", cnf, C_RES)
-            print()
+                raise ValueError(f"{C_RED}False: {npi} can not give {cnf}{C_RES}")
         except ValueError as e:
             print(e)
 
