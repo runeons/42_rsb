@@ -56,7 +56,7 @@ class BooleanRpn:
             else:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
         if len(self.stack) > 1:
-            raise ValueError(f"{C_RED}Error:{C_RES} invalid formula (BooleanRpn) {self.input}")
+            raise ValueError(f"{C_RED}Error:{C_RES} invalid formula {self.input}")
 
     
     def compute(self, node=None):
@@ -199,7 +199,7 @@ class GenericRpn:
             else:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
         if len(self.stack) > 1:
-            raise ValueError(f"{C_RED}Error:{C_RES} invalid formula (GenericRpn) {self.input}")
+            raise ValueError(f"{C_RED}Error:{C_RES} invalid formula {self.input}")
         if self.operators_nb == 0 and self.vars_nb > 1:
             raise ValueError(f"{C_RED}Error:{C_RES} there should be at least one operator within '&', '|', '^', '>', '=' in {self.input}")
 
@@ -630,6 +630,13 @@ def main():
         "AB|C|D|", "AB|CD||", "AB&C&D&", "AB&CD&&",
         "AB|C|D|", "AB|CD||", "ABC||D|", "ABC|D||", "ABCD|||",  # associativity 4 vars
         "AB&C&D&", "AB&CD&&", "ABC&&D&", "ABC&D&&", "ABCD&&&",  # associativity 4 vars
+        "AB=!", "AB>!", "AB^!", "AB|!", "AB&!",
+        "AB=AB==", "AB>AB>=", "AB^AB^=", "AB|AB|=", "AB&AB&=", "AB!AB!=",
+        "AB=AB=>", "AB>AB>>", "AB^AB^>", "AB|AB|>", "AB&AB&>", "AB!AB!>",
+        "AB=AB=^", "AB>AB>^", "AB^AB^^", "AB|AB|^", "AB&AB&^", "AB!AB!^",
+        "AB=AB=|", "AB>AB>|", "AB^AB^|", "AB|AB||", "AB&AB&|", "AB!AB!|",
+        "AB=AB=&", "AB>AB>&", "AB^AB^&", "AB|AB|&", "AB&AB&&", "AB!AB!&",
+        "AB=AB=!", "AB>AB>!", "AB^AB^!", "AB|AB|!", "AB&AB&!",
         "AB|C|", "ABC||",  # associativity 3 vars
         "AB&C&", "ABC&&",  # associativity 3 vars
         "ABC&|", "AB|AC|&", # distributivity ldd

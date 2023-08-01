@@ -180,6 +180,8 @@ class GenericRpn:
                 self.stack.append(self.node)
             else:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
+        if len(self.stack) > 1:
+            raise ValueError(f"{C_RED}Error:{C_RES} invalid formula {self.input}")
         if self.operators_nb == 0 and self.vars_nb > 1:
             raise ValueError(f"{C_RED}Error:{C_RES} there should be at least one operator within '&', '|', '^', '>', '=' in {self.input}")
 
@@ -190,12 +192,12 @@ class GenericRpn:
         self._print_node(self.node, depth)
 
     def _print_node(self, node, depth):
-        if node is not None:
-            print(C_GREEN, "Node : ",  node.value, C_RES)
-            if node.left is not None:
-                print(C_GREEN, "Left : ", node.left.value, C_RES)
-            if node.right is not None:
-                print(C_GREEN, "Right : ", node.right.value, C_RES)
+        # if node is not None:
+        #     print(C_GREEN, "Node : ",  node.value, C_RES)
+        #     if node.left is not None:
+        #         print(C_GREEN, "Left : ", node.left.value, C_RES)
+        #     if node.right is not None:
+        #         print(C_GREEN, "Right : ", node.right.value, C_RES)
         if node is not None:
             if node.value == '!':
                 print("  " * depth, C_YELLOW, node.value, C_RES)
@@ -358,29 +360,29 @@ class RPNtoNNF:
 
     ################ print formulas ################
 
-    # def _recursive_to_infix_formula(self, node):
-    #     if node is None:
-    #         return ""
-    #     if node.value not in self.start_operators:
-    #         return node.value
-    #     if node.value == '!':
-    #         return f"!{self._recursive_to_infix_formula(node.right)}"
-    #     l = self._recursive_to_infix_formula(node.left)
-    #     r = self._recursive_to_infix_formula(node.right)
-    #     if node.value == '&':
-    #         return f"({l} & {r})"
-    #     elif node.value == '|':
-    #         return f"({l} | {r})"
-    #     elif node.value == '^':
-    #         return f"({l} ^ {r})"
-    #     elif node.value == '>':
-    #         return f"({l} > {r})"
-    #     elif node.value == '=':
-    #         return f"({l} = {r})"
-    #     return ""
+    def _recursive_to_infix_formula(self, node):
+        if node is None:
+            return ""
+        if node.value not in self.start_operators:
+            return node.value
+        if node.value == '!':
+            return f"!{self._recursive_to_infix_formula(node.right)}"
+        l = self._recursive_to_infix_formula(node.left)
+        r = self._recursive_to_infix_formula(node.right)
+        if node.value == '&':
+            return f"({l} & {r})"
+        elif node.value == '|':
+            return f"({l} | {r})"
+        elif node.value == '^':
+            return f"({l} ^ {r})"
+        elif node.value == '>':
+            return f"({l} > {r})"
+        elif node.value == '=':
+            return f"({l} = {r})"
+        return ""
 
-    # def print_infix_formula(self):
-    #         print(C_RED, "Infix : ", self._recursive_to_infix_formula(self.init_ast.node), C_RES)
+    def print_infix_formula(self):
+            print(C_RED, "Infix : ", self._recursive_to_infix_formula(self.init_ast.node), C_RES)
 
     # def _recursive_to_npi_formula(self, node):
     #     if node is None:
@@ -438,7 +440,14 @@ class RPNtoNNF:
 
 def main():
     npi_inputs = [
-        "AB=", "AB>", "AB^", "AB|", "AB&", "AB!"
+        "AB=", "AB>", "AB^", "AB|", "AB&", # simple
+        "AB&!", "AB|!", "AB|C&", "AB|C|D|", "AB&C&D&", "AB&!C!|", "AB|!C!&", # subject
+        "BC&A|", # case 1
+        "AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|", "AB&A!A&|", "B!B&A!A&|", # case 2
+        "AB^", "B!B&A!A&|",
+        "AB|C|D|", "AB|CD||", "AB&C&D&", "AB&CD&&",
+        "AB|C|D|", "AB|CD||", "ABC||D|", "ABC|D||", "ABCD|||",  # associativity 4 vars
+        "AB&C&D&", "AB&CD&&", "ABC&&D&", "ABC&D&&", "ABCD&&&",  # associativity 4 vars
         "AB=!", "AB>!", "AB^!", "AB|!", "AB&!",
         "AB=AB==", "AB>AB>=", "AB^AB^=", "AB|AB|=", "AB&AB&=", "AB!AB!=",
         "AB=AB=>", "AB>AB>>", "AB^AB^>", "AB|AB|>", "AB&AB&>", "AB!AB!>",
@@ -446,27 +455,40 @@ def main():
         "AB=AB=|", "AB>AB>|", "AB^AB^|", "AB|AB||", "AB&AB&|", "AB!AB!|",
         "AB=AB=&", "AB>AB>&", "AB^AB^&", "AB|AB|&", "AB&AB&&", "AB!AB!&",
         "AB=AB=!", "AB>AB>!", "AB^AB^!", "AB|AB|!", "AB&AB&!",
+        "AB|C|", "ABC||",  # associativity 3 vars
+        "AB&C&", "ABC&&",  # associativity 3 vars
+        "ABC&|", "AB|AC|&", # distributivity ldd
+        "BCA&|", "BA|CA|&", # distributivity rdd
+        "AB&AC&|", "ABC|&", # distributivity lcd
+        "AB&AC&|", # tmp lcd
+        "BA&CA&|", "BCA|&", # distributivity rcd
+        "AB&CD&E&&", # more vars
+        "AB&CD&E||",
+        "AB&CD&E&&",
+        "FK&G&B&CD&E&&",
+        "FK&G&B&CD&E&|",
         "A!B|", "A!B!&", "A!!B!!>", "AB!^", "AB>A>", "AB>A>B>",
         "A", "A!",
         "AB|C&!", "A!B!|", "ABAA||=",   # subject
         "AB&C!>", "BC&A|",
-        "BC&A!", # wrong input a gerer
-        # "AB!", "!A", "AB&C!|>", "AA", "AB&c"          # wrong input
-    ]
-
+        "BC&A!", "AB!", "!A", "AB&C!|>", "AA", "AB&c"          # wrong input        
+    ] 
+    
     for npi in npi_inputs:
         try:
             converter = RPNtoNNF(GenericRpn(npi))
             nnf = converter.convert_and_get_nnf_formula()
+            # converter.print_infix_formula()
+            # converter.print()/
             tt_npi = TruthTable(npi)
             tt_nnf = TruthTable(nnf)
             # tt_npi.print()
             # tt_nnf.print()
             converter.check_nnf_format(nnf)
             if (tt_nnf.table == tt_npi.table):
-                print(C_GREEN, "True:", npi, "gives", nnf, C_RES)
+                print(f"{C_GREEN}True:{C_RES} {npi}{C_GREEN} <=> {C_RES}{nnf}{C_RES}")
             else:
-                print(C_RED, "False:", npi, "can not give", nnf, C_RES)
+                raise ValueError(f"{C_RED}False: {npi} can not give {nnf}{C_RES}")
         except ValueError as e:
             print(e)
 
