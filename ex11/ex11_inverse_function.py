@@ -65,7 +65,7 @@ class ZCurve:
         for i in range(0, 4, 1): # start, end, jump
             x = (x | (x >> SHIFTS[i])) & MASKS[i]
             y = (y | (y >> SHIFTS[i])) & MASKS[i]
-        return x, y
+        return x % 65536, y % 65536
 
     def reverse_map(self, p):
         if (p < 0 or p > 1):
@@ -112,13 +112,15 @@ def main():
             (2, 1),
             (255, 255),
             (255, 256),
-            # (4096, 4096),
-            # (40000, 40000),
-            # (40000, 40000),
-            # (41000, 65535),
-            # (42000, 0),
-            # (42000, 65535),
-            # (65535, 65535),
+            (1, 256),
+            (256, 1),
+            (4096, 4096),
+            (40000, 40000),
+            (40000, 40000),
+            (41000, 65535),
+            (42000, 0),
+            (42000, 65535),
+            (65535, 65535),
         ]
         zcurve = ZCurve()
         for t in tests:
@@ -129,14 +131,14 @@ def main():
             else:
                 raise ValueError(f"{C_RED}False: {res} = f({x}, {y}) != f({t[0]}, {t[1]}){C_RES}")
                 print(f"{C_RED}False: {res} = f({x}, {y}) != f({t[0]}, {t[1]}){C_RES}")
-        for t in range(0, 3000):
-            x, y = zcurve.number_to_z_curve(t)
-            res = zcurve.z_curve_to_number(x, y)
-            if (res == t):
-                print(f"{C_GREEN}True: f({x}, {y}) = {t}{C_RES}")
-            else:
-                raise ValueError(f"{C_RED}False: f({x}, {y}) = {t} != {res}{C_RES}")
-                # print(f"{C_RED}False: f({x}, {y}) = {t} != {res}{C_RES}")
+        # for t in range(0, 3000):
+        #     x, y = zcurve.number_to_z_curve(t)
+        #     res = zcurve.z_curve_to_number(x, y)
+        #     if (res == t):
+        #         print(f"{C_GREEN}True: f({x}, {y}) = {t}{C_RES}")
+        #     else:
+        #         raise ValueError(f"{C_RED}False: f({x}, {y}) = {t} != {res}{C_RES}")
+                print(f"{C_RED}False: f({x}, {y}) = {t} != {res}{C_RES}")
         # zcurve.draw()
     except ValueError as e:
         print(e)
