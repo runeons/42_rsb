@@ -17,8 +17,6 @@ class BooleanRpn:
         self.operators = set(['!', '&', '|', '^', '>', '='])
         self.stack = []
         self.node = None
-        self.operators_nb = 0
-        self.vars_nb = 0
         self.create()
 
     def create(self):
@@ -27,7 +25,6 @@ class BooleanRpn:
             raise ValueError(f"{C_RED}Error:{C_RES} empty formula")
         for c in chars:
             if c in self.allowed_vars:
-                self.vars_nb += 1
                 self.node = Node(int(c))
                 self.stack.append(self.node)
             elif c in self.operators:
@@ -37,7 +34,6 @@ class BooleanRpn:
                     operand = self.stack.pop()
                     self.node = Node(c, right=operand)
                 else:
-                    self.operators_nb += 1
                     if len(self.stack) < 2:
                         raise ValueError(f"{C_RED}Error:{C_RES} insufficient operands for operator '{c}' in {self.input}")
                     right = self.stack.pop()
@@ -48,8 +44,6 @@ class BooleanRpn:
                 raise ValueError(f"{C_RED}Error:{C_RES} undefined character {c} in {self.input}")
         if len(self.stack) > 1:
             raise ValueError(f"{C_RED}Error:{C_RES} invalid formula {self.input}")
-        # if self.operators_nb == 0 and self.vars_nb > 1:
-            # raise ValueError(f"{C_RED}Error:{C_RES} there should be at least one operator within '&', '|', '^', '>', '=' in {self.input}")
 
     def compute(self, node=None):
         if node is None:
