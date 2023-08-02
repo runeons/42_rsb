@@ -95,7 +95,6 @@ def check_time_complexity(f):
         else:
             print(f"{C_BLUE}Size:{C_RES} {n}{C_BLUE}, Execution time: {C_RES}{curr_time}{C_BLUE}, Ratio: {C_RES}-")
 
-
 def eval_formula(formula: str) -> bool:
     ast = BooleanRpn(formula)
     # ast.print()
