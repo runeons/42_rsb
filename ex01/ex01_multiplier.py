@@ -3,24 +3,24 @@ C_GREEN = "\033[92m"
 C_RED = "\033[91m"
 C_RES = "\033[0m"
 
-def adder(a: int, b: int) -> int:
-    while (b != 0):
-        carry = a & b
-        addition = a ^ b
-        a = addition
-        b = carry << 1
-    return a
+def adder(x: int, y: int) -> int:
+    while (y != 0):
+        carry = x & y
+        addition = x ^ y
+        x = addition
+        y = carry << 1
+    return x
 
-def multiplier(a: int, b: int) -> int:
-    if a < 0 or b < 0:
+def multiplier(x: int, y: int) -> int:
+    if x < 0 or y < 0:
         raise ValueError(f"{C_RED}Error: {C_RES}Unsigned int expected.")
-    add = 0
-    while (b > 0):
-        if (b & 1):
-            add += a
-        a = a << 1
-        b = b >> 1
-    return add
+    res = 0
+    while (y > 0):
+        if (y & 1):
+            res += x
+        x = x << 1
+        y = y >> 1
+    return res
 
 def main():
     tests = [(0, 0), (4294967295, 4294967295)]
@@ -28,14 +28,13 @@ def main():
         tests.append((random.randrange(0, 2147483647), random.randrange(0, 2147483647)))
     for t in tests:
         try:
-            a = t[0]
-            b = t[1]
-            res = multiplier(a, b)
-            val = a * b
+            x, y = t[0], t[1]
+            res = multiplier(x, y)
+            val = x * y
             if (res == val):
-                print(f"{C_GREEN}{(res == val)}: {C_RES}{a} * {b} = {val} = {res}")
+                print(f"{C_GREEN}{(res == val)}: {C_RES}{x} * {y} = {val} = {res}")
             else:
-                print(f"{C_RED}{(res == val)}: {C_RES}{a} * {b} = {val} != {res}")
+                print(f"{C_RED}{(res == val)}: {C_RES}{x} * {y} = {val} != {res}")
         except ValueError as e:
             print(e)
 
