@@ -12,6 +12,8 @@ def adder(a: int, b: int) -> int:
     return a
 
 def multiplier(a: int, b: int) -> int:
+    if a < 0 or b < 0:
+        raise ValueError(f"{C_RED}Error: {C_RES}Unsigned int expected.")
     add = 0
     while (b > 0):
         if (b & 1):
@@ -20,22 +22,22 @@ def multiplier(a: int, b: int) -> int:
         b = b >> 1
     return add
 
-def check(a, b):
-    res = multiplier(a, b)
-    val = a * b
-    if (res == val):
-        print(C_GREEN, (res == val), C_RES, a, " * ", b, " = ", val, " = ", res)
-    else:
-        print(C_RED, (res == val), C_RES, a, " * ", b, " = ", val, " != ", res)
-
 def main():
-    test_limits = [(0, 0), (2147483647, 2147483647)]
-    for a, b in test_limits:
-        check(a, b)
+    tests = [(0, 0), (4294967295, 4294967295)]
     for _ in range(10):
-        a = random.randrange(0, 2147483647)
-        b = random.randrange(0, 2147483647)
-        check(a, b)
+        tests.append((random.randrange(0, 2147483647), random.randrange(0, 2147483647)))
+    for t in tests:
+        try:
+            a = t[0]
+            b = t[1]
+            res = multiplier(a, b)
+            val = a * b
+            if (res == val):
+                print(f"{C_GREEN}{(res == val)}: {C_RES}{a} * {b} = {val} = {res}")
+            else:
+                print(f"{C_RED}{(res == val)}: {C_RES}{a} * {b} = {val} != {res}")
+        except ValueError as e:
+            print(e)
 
 if (__name__ == "__main__"):
     main()
