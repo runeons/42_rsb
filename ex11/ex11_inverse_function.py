@@ -1,4 +1,4 @@
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 C_GREEN = "\033[92m"
 C_RED = "\033[91m"
@@ -8,34 +8,26 @@ C_RES = "\033[0m"
 
 class ZCurve:
     def __init__(self):
-        self.y_min = self.z_curve_to_float(0, 0)
-        self.y_max = self.z_curve_to_float(65535, 65535)
+        self.y_min = self._coordinates_to_int(0, 0)
+        self.y_max = self._coordinates_to_int(65535, 65535)
         self.denormalise_max = 4294967295
 
-    def check_param(self, p):
+    def _check_param(self, p):
         if (not isinstance(p, int)) or (p < 0 or p > 65535):
             raise ValueError(f"{C_RED}Error: {C_RES}Parameter {p} must be a natural number between 0 and 65535.")
 
-    def normalise(self, raw_nb):
+    ################## map ################## f(x, y) -> float
+
+    def _normalise(self, raw_nb):
         return (raw_nb - self.y_min) / (self.y_max - self.y_min)
 
-    def denormalise(self, input_float):
-        ret = input_float * self.denormalise_max
-        return (int(ret))
-
-    def map(self, x, y):
-        for p in [x, y]:
-            self.check_param(p)
-        res = self.z_curve_to_float(x, y)
-        return self.normalise(res)
-
-    # 0x55555555 = 01010101 01010101 01010101 01010101
-    # 0x33333333 = 00110011 00110011 00110011 00110011
-    # 0x0F0F0F0F = 00001111 00001111 00001111 00001111
-    # 0x00FF00FF = 00000000 11111111 00000000 11111111
-    def z_curve_to_float(self, init_x, init_y):
+    def _coordinates_to_int(self, init_x, init_y):
         SHIFTS = [1, 2, 4, 8]
         MASKS = [0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF]        
+        # 0x55555555 = 01010101 01010101 01010101 01010101
+        # 0x33333333 = 00110011 00110011 00110011 00110011
+        # 0x0F0F0F0F = 00001111 00001111 00001111 00001111
+        # 0x00FF00FF = 00000000 11111111 00000000 11111111
         x = init_x  
         y = init_y
         for i in range(3, -1, -1):
@@ -44,7 +36,19 @@ class ZCurve:
         result = x | (y << 1)
         return result
     
-    def number_to_z_curve(self, value):
+    def map(self, x, y):
+        for p in [x, y]:
+            self._check_param(p)
+        res = self._coordinates_to_int(x, y)
+        return self._normalise(res)
+
+    ################## reverse_map ################## f(float) -> (x, y)
+
+    def _denormalise(self, input_float):
+        ret = input_float * self.denormalise_max
+        return (int(ret))
+
+    def _int_to_coordinates(self, value):
         SHIFTS = [1, 2, 4, 8]
         MASKS = [ 0x33333333, 0x0F0F0F0F, 0x00FF00FF, 0xFFFFFFFF]        
         x = int(value) & 0x55555555
@@ -58,24 +62,26 @@ class ZCurve:
         if (p < 0 or p > 1):
             raise ValueError(f"{C_RED}Error: {C_RES} input {p} must be between 0 and 1.")
         tmp = p
-        p = self.denormalise(p)
+        p = self._denormalise(p)
         print(C_YELLOW, tmp, "=====>", p, C_RES)
-        x, y = self.number_to_z_curve(p)
+        x, y = self._int_to_coordinates(p)
         return x, y
+
+    ################## map draw ################## f(x, y) -> float
 
     # def draw(self, x_min=0, x_max=10, y_min=0, y_max=10):
     #     print(C_YELLOW, "draw", C_RES)
     #     for p in [x_min, y_min, x_max, y_max]:
-    #         self.check_param(p)
+    #         self._check_param(p)
     #     if (x_min > x_max) or (y_min > y_max):
     #         raise ValueError(f"{C_RED}Error: {C_RES} x_min > x_max or y_min > y_max")
     #     all_results = set()
-    #     # all_results.add(self.normalise(self.z_curve_to_float(0, 0)))
+    #     # all_results.add(self.normalise(self._coordinates_to_int(0, 0)))
     #     for x in range(x_min, x_max + 1):
     #         for y in range(y_min, y_max + 1):
-    #             res = self.normalise(self.z_curve_to_float(x, y))
+    #             res = self.normalise(self._coordinates_to_int(x, y))
     #             all_results.add(res)
-    #     # all_results.add(self.normalise(self.z_curve_to_float(65535, 65535)))
+    #     # all_results.add(self.normalise(self._coordinates_to_int(65535, 65535)))
     #     x_coords = list(range(len(all_results)))
     #     y_coords = list(all_results)
     #     plt.plot(x_coords, y_coords, 'b.')
@@ -84,54 +90,49 @@ class ZCurve:
     #     plt.title(f"Z Curve for x=[{x_min}, {x_max}], y=[{y_min}, {y_max}]")
     #     plt.show()
 
-    # def reverse_draw(self):
-    #     print(C_YELLOW, "reverse_draw", C_RES)
-    #     z_curve_coordinates = []
-    #     for f in range(0, 50000):
-    #         x_coords, y_coords = self.number_to_z_curve(f)
-    #         z_curve_coordinates.append((x_coords, y_coords))
-    #     # for f in range(55325, 65535):
-    #     #     x_coords, y_coords = self.number_to_z_curve(f)
-    #     #     z_curve_coordinates.append((x_coords, y_coords))
-    #     # for f in range(4294960000, 4294967295):
-    #     #     x_coords, y_coords = self.number_to_z_curve(f)
-    #     #     z_curve_coordinates.append((x_coords, y_coords))
-    #     print(len(z_curve_coordinates))
-    #     for i, (x_coords, y_coords) in enumerate(z_curve_coordinates):
-    #         plt.plot(x_coords, y_coords, label=f'Z-Curve {i+1}')
-    #     plt.plot(x_coords, y_coords, 'b.')
-    #     plt.xlabel('X')
-    #     plt.ylabel('Y')
-    #     plt.title('Visualisation des coordonnées de la z-curve')
-    #     plt.show()
+    ################## reverse_map draw ################## f(float) -> x, y
+
+    def _iterate_floats(self, start, stop, step):
+        current = start
+        while current < stop:
+            yield current
+            current += step
+
+    def reverse_draw(self):
+        print(C_YELLOW, "reverse_draw", C_RES)
+        x_coords = []
+        y_coords = []
+        # f_tests_ex10 = [ 0.0000000004656612874161595, 0.000000001862645149664638, 0.0000000023283064370807974, 0.000000007450580598658552, 0.000000007916241886074711, 0.00000000023283064370807974, 0.0000000006984919311242392, 0.0000000020954757933727176, 0.000000002561137080788877, 0.000000007683411242366631, 0.00000000814907252978279, 0.0000000013969838622484784, 0.000000001862645149664638 ]
+        precisions = [0.1, 0.01, 0.001, 0.0001, 0.00001]
+        for p in precisions:
+            for f in self._iterate_floats(0, 1 - p, p):
+                i = self._denormalise(f)
+                x, y = self._int_to_coordinates(i)
+                x_coords.append(x)
+                y_coords.append(y)
+                # print("x = ", x, ", y = ", y)
+            plt.plot(x_coords, y_coords, 'b.')
+            plt.xlabel('X')
+            plt.ylabel('Y')
+            plt.title('Z-curve')
+            plt.axis('equal') 
+            plt.show()
 
 def map(x: int, y:int) -> float:
     zcurve = ZCurve()
-    # zcurve.check_injectivity()
-    # zcurve.draw()
     return zcurve.map(x, y)
 
 def reverse_map(f: float) -> (int, int):
         zcurve = ZCurve()
         x, y = zcurve.reverse_map(f)
-        # zcurve.reverse_draw()
         return (x, y)
 
 def main():
     try:
         float_tests = [
-            0, 
-            1,
-            0.9000000001164153,
-            0.99,
-            0.9899999999883584, 
-            0.9900000002211891,
-            0.9899999999883584,
-            0.9899999997555278,
-            0.9899999999883584,
-            0.9900000002211891,
-            0.9900000004540197,
-            0.6,
+            0, 0.2, 0.4, 0.6, 0.8, 1,
+            # 0.48, 0.99,
+            # 0.9000000001164153, 0.9899999999883584,  0.9900000002211891, 0.9899999999883584, 0.9899999997555278, 0.9899999999883584, 0.9900000002211891, 0.9900000004540197,
         ]
         for f in float_tests:
             x, y = reverse_map(f)
@@ -140,9 +141,10 @@ def main():
                 print(f"{C_GREEN}True: {f} = f({x}, {y}) = {check}{C_RES}")
             else:
                 print(f"{C_RED}False: {f} = f({x}, {y}) != {check}{C_RES}")
-            print()
+        # ZCurve().reverse_draw()
     except ValueError as e:
         print(e)
 
 if (__name__ == "__main__"):
     main()
+
