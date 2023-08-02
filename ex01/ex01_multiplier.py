@@ -39,7 +39,7 @@ def check_time_complexity(f):
         n, curr_time = res[i]
         if prev_time:
             ratio = curr_time / prev_time
-            print(f"{C_BLUE}Size:{C_RES} {n}{C_BLUE}, Execution time: {C_RES}{curr_time}{C_BLUE}, Ratio: {C_RES}{ratio}")
+            print(f"{C_BLUE}Size:{C_RES} {n}{C_BLUE}, Execution time: {C_RES}{curr_time}{C_BLUE}, Ratio: {C_RES}{ratio:.2f}")
         else:
             print(f"{C_BLUE}Size:{C_RES} {n}{C_BLUE}, Execution time: {C_RES}{curr_time}{C_BLUE}, Ratio: {C_RES}-")
 
@@ -58,7 +58,11 @@ def main():
                 print(f"{C_RED}{(res == val)}: {C_RES}{x} * {y} = {val} != {res}")
         except ValueError as e:
             print(e)
-    # check_time_complexity(multiplier)
+    # try:
+    #    check_time_complexity(multiplier)
+    # except ValueError as e:
+    #         print(e)
+
 
 if (__name__ == "__main__"):
     main()

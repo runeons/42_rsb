@@ -1,7 +1,9 @@
+import time
+
 C_GREEN = "\033[92m"
 C_RED = "\033[91m"
-C_YELLOW = "\033[34m"
-C_BLUE = "\033[33m"
+C_YELLOW = "\033[33m"
+C_BLUE = "\033[34m"
 C_RES = "\033[0m"
 
 class Node:
@@ -75,6 +77,25 @@ class BooleanRpn:
             self._print_node(node.left, depth - 2)
             self._print_node(node.right, depth + 2)
 
+def check_time_complexity(f):
+    inputs = ["1", "10&", "10!&", "1011&&&", "1011&&!&", "10&10&10&10&&&&", "10&10&10&10&10&10&10&10&&&&&&&&"]
+    res = []
+    for inp in inputs:
+        start_time = time.time_ns()
+        f(inp)
+        end_time = time.time_ns()
+        execution_time = end_time - start_time
+        res.append((len(inp), execution_time))
+    for i in range(0, len(res)):
+        _, prev_time = res[i - 1]
+        n, curr_time = res[i]
+        if prev_time:
+            ratio = curr_time / prev_time
+            print(f"{C_BLUE}Size:{C_RES} {n}{C_BLUE}, Execution time: {C_RES}{curr_time}{C_BLUE}, Ratio: {C_RES}{ratio:.2f}")
+        else:
+            print(f"{C_BLUE}Size:{C_RES} {n}{C_BLUE}, Execution time: {C_RES}{curr_time}{C_BLUE}, Ratio: {C_RES}-")
+
+
 def eval_formula(formula: str) -> bool:
     ast = BooleanRpn(formula)
     # ast.print()
@@ -91,6 +112,10 @@ def main():
                 print(f"{C_RED}{npi}{C_RES} ==> {C_RED}{res}{C_RES}")
         except ValueError as e:
             print(e)
+    # try:
+    #    check_time_complexity(eval_formula)
+    # except ValueError as e:
+    #         print(e)
 
 if (__name__ == "__main__"):
     main()
