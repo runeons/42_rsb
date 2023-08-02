@@ -17,7 +17,7 @@ def multiplier(x: int, y: int) -> int:
     res = 0
     while (y > 0):
         if (y & 1):
-            res += x
+            res = adder(res, x)
         x = x << 1
         y = y >> 1
     return res
