@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 C_GREEN = "\033[92m"
 C_RED = "\033[91m"
@@ -63,32 +63,9 @@ class ZCurve:
             raise ValueError(f"{C_RED}Error: {C_RES} input {p} must be between 0 and 1.")
         tmp = p
         p = self._denormalise(p)
-        print(C_YELLOW, tmp, "=====>", p, C_RES)
+        # print(C_YELLOW, tmp, "=====>", p, C_RES)
         x, y = self._int_to_coordinates(p)
         return x, y
-
-    ################## map draw ################## f(x, y) -> float
-
-    # def draw(self, x_min=0, x_max=10, y_min=0, y_max=10):
-    #     print(C_YELLOW, "draw", C_RES)
-    #     for p in [x_min, y_min, x_max, y_max]:
-    #         self._check_param(p)
-    #     if (x_min > x_max) or (y_min > y_max):
-    #         raise ValueError(f"{C_RED}Error: {C_RES} x_min > x_max or y_min > y_max")
-    #     all_results = set()
-    #     # all_results.add(self.normalise(self._coordinates_to_int(0, 0)))
-    #     for x in range(x_min, x_max + 1):
-    #         for y in range(y_min, y_max + 1):
-    #             res = self.normalise(self._coordinates_to_int(x, y))
-    #             all_results.add(res)
-    #     # all_results.add(self.normalise(self._coordinates_to_int(65535, 65535)))
-    #     x_coords = list(range(len(all_results)))
-    #     y_coords = list(all_results)
-    #     plt.plot(x_coords, y_coords, 'b.')
-    #     plt.xlabel('Itérations')
-    #     plt.ylabel('f(x, y)')
-    #     plt.title(f"Z Curve for x=[{x_min}, {x_max}], y=[{y_min}, {y_max}]")
-    #     plt.show()
 
     ################## reverse_map draw ################## f(float) -> x, y
 
@@ -98,25 +75,25 @@ class ZCurve:
             yield current
             current += step
 
-    def reverse_draw(self):
-        print(C_YELLOW, "reverse_draw", C_RES)
-        x_coords = []
-        y_coords = []
-        # f_tests_ex10 = [ 0.0000000004656612874161595, 0.000000001862645149664638, 0.0000000023283064370807974, 0.000000007450580598658552, 0.000000007916241886074711, 0.00000000023283064370807974, 0.0000000006984919311242392, 0.0000000020954757933727176, 0.000000002561137080788877, 0.000000007683411242366631, 0.00000000814907252978279, 0.0000000013969838622484784, 0.000000001862645149664638 ]
-        precisions = [0.1, 0.01, 0.001, 0.0001, 0.00001]
-        for p in precisions:
-            for f in self._iterate_floats(0, 1 - p, p):
-                i = self._denormalise(f)
-                x, y = self._int_to_coordinates(i)
-                x_coords.append(x)
-                y_coords.append(y)
-                # print("x = ", x, ", y = ", y)
-            plt.plot(x_coords, y_coords, 'b.')
-            plt.xlabel('X')
-            plt.ylabel('Y')
-            plt.title('Z-curve')
-            plt.axis('equal') 
-            plt.show()
+    # def reverse_draw(self):
+    #     print(C_YELLOW, "reverse_draw", C_RES)
+    #     x_coords = []
+    #     y_coords = []
+    #     # f_tests_ex10 = [ 0.0000000004656612874161595, 0.000000001862645149664638, 0.0000000023283064370807974, 0.000000007450580598658552, 0.000000007916241886074711, 0.00000000023283064370807974, 0.0000000006984919311242392, 0.0000000020954757933727176, 0.000000002561137080788877, 0.000000007683411242366631, 0.00000000814907252978279, 0.0000000013969838622484784, 0.000000001862645149664638 ]
+    #     precisions = [0.1, 0.01, 0.001, 0.0001, 0.00001]
+    #     for p in precisions:
+    #         for f in self._iterate_floats(0, 1 - p, p):
+    #             i = self._denormalise(f)
+    #             x, y = self._int_to_coordinates(i)
+    #             x_coords.append(x)
+    #             y_coords.append(y)
+    #             # print("x = ", x, ", y = ", y)
+    #         plt.plot(x_coords, y_coords, 'b.')
+    #         plt.xlabel('X')
+    #         plt.ylabel('Y')
+    #         plt.title('Z-curve')
+    #         plt.axis('equal') 
+    #         plt.show()
 
 def map(x: int, y:int) -> float:
     zcurve = ZCurve()
@@ -138,9 +115,9 @@ def main():
             x, y = reverse_map(f)
             check = map(x, y)
             if (f == check):
-                print(f"{C_GREEN}True: {f} = f({x}, {y}) = {check}{C_RES}")
+                print(f"{C_GREEN}True: {C_RES}{f} = f({x}, {y}) = {check}{C_RES}")
             else:
-                print(f"{C_RED}False: {f} = f({x}, {y}) != {check}{C_RES}")
+                print(f"{C_RED}False: {C_RES}{f} = f({x}, {y}) != {check}{C_RES}")
         # ZCurve().reverse_draw()
     except ValueError as e:
         print(e)
