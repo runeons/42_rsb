@@ -24,6 +24,7 @@ class ZCurve:
                 if res in all_results:
                     raise ValueError(f"{C_RED}Error: {C_RES}NOT INJECTIVE {res} for {x}, {y}")
                 all_results.add(res)
+        print(C_YELLOW, "OK - injective", C_RES)
 
     ################## map ################## f(x, y) -> float
 
@@ -74,7 +75,7 @@ class ZCurve:
 
 def map(x: int, y:int) -> float:
     zcurve = ZCurve()
-    # zcurve.check_injectivity()
+    # zcurve.check_injectivity(x_max=10000, y_max=10000)
     return zcurve.map(x, y)
 
 def main():
@@ -87,6 +88,7 @@ def main():
             unique_float = map(t[0], t[1])
             print(f"{C_GREEN}f({t[0]}, {t[1]}){C_RES} = {unique_float}")
         # ZCurve().draw()
+        # ZCurve().check_injectivity(x_max=100, y_max=1000)
 
     except ValueError as e:
         print(e)

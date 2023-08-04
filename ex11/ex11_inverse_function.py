@@ -1,4 +1,5 @@
 # import matplotlib.pyplot as plt
+from typing import Tuple
 
 C_GREEN = "\033[92m"
 C_RED = "\033[91m"
@@ -63,7 +64,6 @@ class ZCurve:
             raise ValueError(f"{C_RED}Error: {C_RES} input {p} must be between 0 and 1.")
         tmp = p
         p = self._denormalise(p)
-        # print(C_YELLOW, tmp, "=====>", p, C_RES)
         x, y = self._int_to_coordinates(p)
         return x, y
 
@@ -79,7 +79,6 @@ class ZCurve:
     #     print(C_YELLOW, "reverse_draw", C_RES)
     #     x_coords = []
     #     y_coords = []
-    #     # f_tests_ex10 = [ 0.0000000004656612874161595, 0.000000001862645149664638, 0.0000000023283064370807974, 0.000000007450580598658552, 0.000000007916241886074711, 0.00000000023283064370807974, 0.0000000006984919311242392, 0.0000000020954757933727176, 0.000000002561137080788877, 0.000000007683411242366631, 0.00000000814907252978279, 0.0000000013969838622484784, 0.000000001862645149664638 ]
     #     precisions = [0.1, 0.01, 0.001, 0.0001, 0.00001]
     #     for p in precisions:
     #         for f in self._iterate_floats(0, 1 - p, p):
@@ -87,7 +86,6 @@ class ZCurve:
     #             x, y = self._int_to_coordinates(i)
     #             x_coords.append(x)
     #             y_coords.append(y)
-    #             # print("x = ", x, ", y = ", y)
     #         plt.plot(x_coords, y_coords, 'b.')
     #         plt.xlabel('X')
     #         plt.ylabel('Y')
@@ -99,7 +97,7 @@ def map(x: int, y:int) -> float:
     zcurve = ZCurve()
     return zcurve.map(x, y)
 
-def reverse_map(f: float) -> (int, int):
+def reverse_map(f: float) -> Tuple[int, int]:
         zcurve = ZCurve()
         x, y = zcurve.reverse_map(f)
         return (x, y)
