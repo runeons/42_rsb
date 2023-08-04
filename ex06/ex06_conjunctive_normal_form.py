@@ -15,15 +15,11 @@ class Node:
     def __eq__(self, other):
         if not isinstance(other, Node):
             return False
-        n_eq = self.value == other.value
-        l_eq = self.left == other.left if self.left and other.left else self.left is other.left
-        r_eq = self.right == other.right if self.right and other.right else self.right is other.right
-        return n_eq and l_eq and r_eq
-        # return (
-        #     self.value == other.value and
-        #     self.left == other.left and
-        #     self.right == other.right
-        # )
+        return (
+            self.value == other.value and
+            self.left == other.left and
+            self.right == other.right
+        )
 
 class BooleanRpn:
     def __init__(self, inp):
@@ -549,11 +545,11 @@ class RPNtoCNF:
 
 
     def _convert_to_cnf(self):
+        self._recursive_convert_each(self.ast.node)
         while not self.is_correct_cnf_format(self._recursive_to_cnf_formula(self.ast.node)):
             self._recursive_convert_each(self.ast.node)
 
     def convert_and_get_cnf_formula(self):
-        # print(C_YELLOW, "npi:", self.ast.input, "nnf:", self.nnf, C_RES)
         self._convert_to_cnf()
         return self._recursive_to_cnf_formula(self.ast.node)
 
@@ -620,43 +616,43 @@ class RPNtoCNF:
 def conjunctive_normal_form(formula: str) -> str:
     converter = RPNtoCNF(GenericRpn(formula))
     cnf = converter.convert_and_get_cnf_formula()
+    # converter.print()
     converter.check_cnf_format(cnf)
     return cnf
 
 def main():
     npi_inputs = [
-        "AB=", "AB>", "AB^", "AB|", "AB&", # simple
+        # "AB=", "AB>", "AB^", "AB|", "AB&", # simple
         "AB&!", "AB|!", "AB|C&", "AB|C|D|", "AB&C&D&", "AB&!C!|", "AB|!C!&", # subject
-        "BC&A|", # case 1
-        "AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|", "AB&A!A&|", "B!B&A!A&|", # case 2
-        "AB^", "B!B&A!A&|",
-        "AB|C|D|", "AB|CD||", "AB&C&D&", "AB&CD&&",
-        "AB|C|D|", "AB|CD||", "ABC||D|", "ABC|D||", "ABCD|||",  # associativity 4 vars
-        "AB&C&D&", "AB&CD&&", "ABC&&D&", "ABC&D&&", "ABCD&&&",  # associativity 4 vars
-        "AB=!", "AB>!", "AB^!", "AB|!", "AB&!",
-        "AB=AB==", "AB>AB>=", "AB^AB^=", "AB|AB|=", "AB&AB&=", "AB!AB!=",
-        "AB=AB=>", "AB>AB>>", "AB^AB^>", "AB|AB|>", "AB&AB&>", "AB!AB!>",
-        "AB=AB=^", "AB>AB>^", "AB^AB^^", "AB|AB|^", "AB&AB&^", "AB!AB!^",
-        "AB=AB=|", "AB>AB>|", "AB^AB^|", "AB|AB||", "AB&AB&|", "AB!AB!|",
-        "AB=AB=&", "AB>AB>&", "AB^AB^&", "AB|AB|&", "AB&AB&&", "AB!AB!&",
-        "AB=AB=!", "AB>AB>!", "AB^AB^!", "AB|AB|!", "AB&AB&!",
-        "AB|C|", "ABC||",  # associativity 3 vars
-        "AB&C&", "ABC&&",  # associativity 3 vars
-        "ABC&|", "AB|AC|&", # distributivity ldd
-        "BCA&|", "BA|CA|&", # distributivity rdd
-        "AB&AC&|", "ABC|&", # distributivity lcd
-        "AB&AC&|", # tmp lcd
-        "BA&CA&|", "BCA|&", # distributivity rcd
-        "AB&CD&E&&", # more vars
-        "AB&CD&E||",
-        "AB&CD&E&&",
-        "FK&G&B&CD&E&&",
-        "FK&G&B&CD&E&|",
-        "A!B|", "A!B!&", "A!!B!!>", "AB!^", "AB>A>", "AB>A>B>",
-        "A", "A!",
-        "AB|C&!", "A!B!|", "ABAA||=",   # subject
-        "AB&C!>", "BC&A|",
-        "BC&A!", "AB!", "!A", "AB&C!|>", "AA", "AB&c"          # wrong input        
+        # "BC&A|", "AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|", "AB&A!A&|", "B!B&A!A&|",
+        # "AB^", "B!B&A!A&|",
+        # "AB|C|D|", "AB|CD||", "AB&C&D&", "AB&CD&&",
+        # "AB|C|D|", "AB|CD||", "ABC||D|", "ABC|D||", "ABCD|||",  # associativity 4 vars
+        # "AB&C&D&", "AB&CD&&", "ABC&&D&", "ABC&D&&", "ABCD&&&",  # associativity 4 vars
+        # "AB=!", "AB>!", "AB^!", "AB|!", "AB&!",
+        # "AB=AB==", "AB>AB>=", "AB^AB^=", "AB|AB|=", "AB&AB&=", "AB!AB!=",
+        # "AB=AB=>", "AB>AB>>", "AB^AB^>", "AB|AB|>", "AB&AB&>", "AB!AB!>",
+        # "AB=AB=^", "AB>AB>^", "AB^AB^^", "AB|AB|^", "AB&AB&^", "AB!AB!^",
+        # "AB=AB=|", "AB>AB>|", "AB^AB^|", "AB|AB||", "AB&AB&|", "AB!AB!|",
+        # "AB=AB=&", "AB>AB>&", "AB^AB^&", "AB|AB|&", "AB&AB&&", "AB!AB!&",
+        # "AB=AB=!", "AB>AB>!", "AB^AB^!", "AB|AB|!", "AB&AB&!",
+        # "AB|C|", "ABC||",  # associativity 3 vars
+        # "AB&C&", "ABC&&",  # associativity 3 vars
+        # "ABC&|", "AB|AC|&", # distributivity ldd
+        # "BCA&|", "BA|CA|&", # distributivity rdd
+        # "AB&AC&|", "ABC|&", # distributivity lcd
+        # "AB&AC&|",
+        # "BA&CA&|", "BCA|&", # distributivity rcd
+        # "AB&CD&E&&", # more vars
+        # "AB&CD&E||",
+        # "AB&CD&E&&",
+        # "FK&G&B&CD&E&&",
+        # "FK&G&B&CD&E&|",
+        # "A!B|", "A!B!&", "A!!B!!>", "AB!^", "AB>A>", "AB>A>B>",
+        # "A", "A!",
+        # "AB|C&!", "A!B!|", "ABAA||=",
+        # "AB&C!>", "BC&A|",
+        # "BC&A!", "AB!", "!A", "AB&C!|>", "AA", "AB&c"          # wrong input        
     ] 
     for npi in npi_inputs:
         try:

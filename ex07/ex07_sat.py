@@ -211,7 +211,7 @@ class GenericRpn:
             self._print_node(node.right, depth + 2)
 
 def check_time_complexity(f):
-    inputs = ["1", "10&", "10!&", "1011&&&", "1011&&!&", "10&10&10&10&&&&", "10&10&10&10&10&10&10&10&&&&&&&&"]
+    inputs = ["A", "AB&", "AB!&", "ABCA&&&", "ABCD&&!&", "AB&CD&EF&GH&&&&", "AB&CD&EF&GH&IJ&KL&AB&CD&&&&&&&&"]
     res = []
     for inp in inputs:
         start_time = time.time_ns()
@@ -235,16 +235,18 @@ def sat(formula: str) -> bool:
 
 def main():
     npi_inputs = [
-        "AB|", "AB&", "AA!&", "AA^", # subject
+        ("AB|", True), ("AB&", True), ("AA!&", False), ("AA^", False), # subject
+        ("A", True), ("A!", True), ("AC^", True), ("AA!^", True)
     ] 
     
     for npi in npi_inputs:
         try:
-            res = sat(npi)
-            if (res == True):
-                print(f"{C_GREEN}{npi}{C_RES} ==> {C_GREEN}{res}{C_RES}")
+            res = sat(npi[0])
+            expected = npi[1]
+            if (res == expected):
+                print(f"{C_GREEN}{npi[0]}{C_RES} ==> {C_GREEN}{res}{C_RES}")
             else:
-                print(f"{C_RED}{npi}{C_RES} ==> {C_RED}{res}{C_RES}")
+                print(f"{C_RED}{npi[0]}{C_RES} ==> {C_RED}{res}{C_RES}")
         except ValueError as e:
             print(e)
     # try:

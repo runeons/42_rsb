@@ -447,7 +447,7 @@ def negation_normal_form(formula: str) -> str:
 
 def main():
     npi_inputs = [
-        "AB=", "AB>", "AB^", "AB|", "AB&", # simple
+        # "AB=", "AB>", "AB^", "AB|", "AB&", # simple
         "AB&!", "AB|!", "AB>", "AB=", "AB|C&!", # subject
         # "AB&!", "AB|!", "AB|C&", "AB|C|D|", "AB&C&D&", "AB&!C!|", "AB|!C!&", # subject
         # "BC&A|",

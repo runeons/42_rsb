@@ -1,3 +1,5 @@
+from typing import List, Set 
+
 C_GREEN = "\033[92m"
 C_RED = "\033[91m"
 C_YELLOW = "\033[33m"
@@ -26,7 +28,7 @@ class Powerset:
         for s in self.subsets:
             print(s)
 
-def powerset(s: int) -> set():
+def powerset(s: List[int]) -> Set[int]:
     p = Powerset(s)
     # p.print()
     return p.subsets

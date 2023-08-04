@@ -1,3 +1,5 @@
+from typing import List, Set 
+
 C_GREEN = "\033[92m"
 C_RED = "\033[91m"
 C_YELLOW = "\033[33m"
@@ -110,7 +112,7 @@ class GenericRpn:
             self._print_node(node.left, depth - 2)
             self._print_node(node.right, depth + 2)
 
-def eval_set(formula: str, sets) -> set:
+def eval_set(formula: str, sets: List[List[int]]) -> Set[int]:
     ast = GenericRpn(formula, sets)
     ast.replace_var_with_sets()
     # ast.print()
@@ -120,11 +122,13 @@ def eval_set(formula: str, sets) -> set:
 def main():
     try:
         tests = [
-            ("AB&", ({0, 1, 2}, {0, 3, 4})),
-            ("AB&", ({0, 1, 2}, {5, 3, 4})),
-            ("AB|", ({0, 1, 2}, {0, 3, 4})),
+            ("AB&", ({0, 1, 2}, {0, 3, 4})), # subject
+            ("AB|", ({0, 1, 2}, {3, 4, 5})),
             ("A!", ({0, 1, 2},)),
-            ("AB^", ({0, 1, 2}, {0, 3, 4})),
+
+            # ("AB&", ({0, 1, 2}, {5, 3, 4})),
+            # ("AB|", ({0, 1, 2}, {0, 3, 4})),
+            # ("AB^", ({0, 1, 2}, {0, 3, 4})),
         ]
         for f, sets in tests:
             print(f"{C_BLUE}Init sets:{C_RES}", end=" ")
