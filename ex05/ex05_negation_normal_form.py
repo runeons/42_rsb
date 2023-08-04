@@ -448,37 +448,38 @@ def negation_normal_form(formula: str) -> str:
 def main():
     npi_inputs = [
         "AB=", "AB>", "AB^", "AB|", "AB&", # simple
-        "AB&!", "AB|!", "AB|C&", "AB|C|D|", "AB&C&D&", "AB&!C!|", "AB|!C!&", # subject
-        "BC&A|", # case 1
-        "AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|", "AB&A!A&|", "B!B&A!A&|", # case 2
-        "AB^", "B!B&A!A&|",
-        "AB|C|D|", "AB|CD||", "AB&C&D&", "AB&CD&&",
-        "AB|C|D|", "AB|CD||", "ABC||D|", "ABC|D||", "ABCD|||",  # associativity 4 vars
-        "AB&C&D&", "AB&CD&&", "ABC&&D&", "ABC&D&&", "ABCD&&&",  # associativity 4 vars
-        "AB=!", "AB>!", "AB^!", "AB|!", "AB&!",
-        "AB=AB==", "AB>AB>=", "AB^AB^=", "AB|AB|=", "AB&AB&=", "AB!AB!=",
-        "AB=AB=>", "AB>AB>>", "AB^AB^>", "AB|AB|>", "AB&AB&>", "AB!AB!>",
-        "AB=AB=^", "AB>AB>^", "AB^AB^^", "AB|AB|^", "AB&AB&^", "AB!AB!^",
-        "AB=AB=|", "AB>AB>|", "AB^AB^|", "AB|AB||", "AB&AB&|", "AB!AB!|",
-        "AB=AB=&", "AB>AB>&", "AB^AB^&", "AB|AB|&", "AB&AB&&", "AB!AB!&",
-        "AB=AB=!", "AB>AB>!", "AB^AB^!", "AB|AB|!", "AB&AB&!",
-        "AB|C|", "ABC||",  # associativity 3 vars
-        "AB&C&", "ABC&&",  # associativity 3 vars
-        "ABC&|", "AB|AC|&", # distributivity ldd
-        "BCA&|", "BA|CA|&", # distributivity rdd
-        "AB&AC&|", "ABC|&", # distributivity lcd
-        "AB&AC&|", # tmp lcd
-        "BA&CA&|", "BCA|&", # distributivity rcd
-        "AB&CD&E&&", # more vars
-        "AB&CD&E||",
-        "AB&CD&E&&",
-        "FK&G&B&CD&E&&",
-        "FK&G&B&CD&E&|",
-        "A!B|", "A!B!&", "A!!B!!>", "AB!^", "AB>A>", "AB>A>B>",
-        "A", "A!",
-        "AB|C&!", "A!B!|", "ABAA||=",   # subject
-        "AB&C!>", "BC&A|",
-        "BC&A!", "AB!", "!A", "AB&C!|>", "AA", "AB&c", ""          # wrong input        
+        "AB&!", "AB|!", "AB>", "AB=", "AB|C&!", # subject
+        # "AB&!", "AB|!", "AB|C&", "AB|C|D|", "AB&C&D&", "AB&!C!|", "AB|!C!&", # subject
+        # "BC&A|",
+        # "AB&AC&|", "BA&AC&|", "CB&AC&|", "AB&BC&|", "AB&A!A&|", "B!B&A!A&|",
+        # "AB^", "B!B&A!A&|",
+        # "AB|C|D|", "AB|CD||", "AB&C&D&", "AB&CD&&",
+        # "AB|C|D|", "AB|CD||", "ABC||D|", "ABC|D||", "ABCD|||",  # associativity 4 vars
+        # "AB&C&D&", "AB&CD&&", "ABC&&D&", "ABC&D&&", "ABCD&&&",  # associativity 4 vars
+        # "AB=!", "AB>!", "AB^!", "AB|!", "AB&!",
+        # "AB=AB==", "AB>AB>=", "AB^AB^=", "AB|AB|=", "AB&AB&=", "AB!AB!=",
+        # "AB=AB=>", "AB>AB>>", "AB^AB^>", "AB|AB|>", "AB&AB&>", "AB!AB!>",
+        # "AB=AB=^", "AB>AB>^", "AB^AB^^", "AB|AB|^", "AB&AB&^", "AB!AB!^",
+        # "AB=AB=|", "AB>AB>|", "AB^AB^|", "AB|AB||", "AB&AB&|", "AB!AB!|",
+        # "AB=AB=&", "AB>AB>&", "AB^AB^&", "AB|AB|&", "AB&AB&&", "AB!AB!&",
+        # "AB=AB=!", "AB>AB>!", "AB^AB^!", "AB|AB|!", "AB&AB&!",
+        # "AB|C|", "ABC||",  # associativity 3 vars
+        # "AB&C&", "ABC&&",  # associativity 3 vars
+        # "ABC&|", "AB|AC|&", # distributivity ldd
+        # "BCA&|", "BA|CA|&", # distributivity rdd
+        # "AB&AC&|", "ABC|&", # distributivity lcd
+        # "AB&AC&|", # tmp lcd
+        # "BA&CA&|", "BCA|&", # distributivity rcd
+        # "AB&CD&E&&", # more vars
+        # "AB&CD&E||",
+        # "AB&CD&E&&",
+        # "FK&G&B&CD&E&&",
+        # "FK&G&B&CD&E&|",
+        # "A!B|", "A!B!&", "A!!B!!>", "AB!^", "AB>A>", "AB>A>B>",
+        # "A", "A!",
+        # "AB|C&!", "A!B!|", "ABAA||=",
+        # "AB&C!>", "BC&A|",
+        # "BC&A!", "AB!", "!A", "AB&C!|>", "AA", "AB&c", ""          # wrong input        
     ] 
     
     for npi in npi_inputs:

@@ -150,11 +150,11 @@ class TruthTable:
         print(f"|-----|")
 
 def check_time_complexity(f):
-    inputs = ["1", "10&", "10!&", "1011&&&", "1011&&!&", "10&10&10&10&&&&", "10&10&10&10&10&10&10&10&&&&&&&&"]
+    inputs = ["A", "AB&", "AB!&", "ABCA&&&", "ABCD&&!&", "AB&CD&EF&GH&&&&", "AB&CD&EF&GH&IJ&KL&AB&CD&&&&&&&&"]
     res = []
     for inp in inputs:
         start_time = time.time_ns()
-        f(inp)
+        print_truth_table(inp)
         end_time = time.time_ns()
         execution_time = end_time - start_time
         res.append((len(inp), execution_time))
@@ -174,13 +174,13 @@ def print_truth_table(formula: str):
 
 def main():
     npi_inputs = [
-        "AB=", "AB>", "AB^", "AB|", "AB&",
-    #     "AB|C&!", "A!B!|", "ABAA||=", # subject ex05
-    #     "AB&C!>",
-    #     "AB^", "AB!&A!B&|", "",
-    #     "B", "B!B!|A&", "AA|!B&", # tests ex06
-    #     "AB!", "!A", "AB&C!|>", "AA", "AB&c",          # wrong input
-    #     "ABAA||=", "AB&CD&E||",
+        # "AB=", "AB>", "AB^", "AB|", "AB&",
+        # "AB|C&!", "A!B!|", "ABAA||=",
+        "AB&C|" # subject,
+        # "AB^", "AB!&A!B&|", "",
+        # "B", "B!B!|A&", "AA|!B&",
+        # "AB!", "!A", "AB&C!|>", "AA", "AB&c",          # invalid formula
+        # "ABAA||=", "AB&CD&E||",
     ]
     for npi in npi_inputs:
         try:

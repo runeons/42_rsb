@@ -7,22 +7,22 @@ C_YELLOW = "\033[33m"
 C_BLUE = "\033[34m"
 C_RES = "\033[0m"
 
-def adder(x: int, y: int) -> int:
-    while (y != 0):
-        carry = x & y
-        x = x ^ y
-        y = carry << 1
-    return x
+def adder(a: int, b: int) -> int:
+    while (b != 0):
+        carry = a & b
+        a = a ^ b
+        b = carry << 1
+    return a
 
-def multiplier(x: int, y: int) -> int:
-    if x < 0 or y < 0:
+def multiplier(a: int, b: int) -> int:
+    if a < 0 or b < 0:
         raise ValueError(f"{C_RED}Error: {C_RES}Unsigned int expected.")
     res = 0
-    while (y > 0):
-        if (y & 1):
-            res = adder(res, x)
-        x = x << 1
-        y = y >> 1
+    while (b > 0):
+        if (b & 1):
+            res = adder(res, a)
+        a = a << 1
+        b = b >> 1
     return res
 
 def check_time_complexity(f):
@@ -46,6 +46,7 @@ def check_time_complexity(f):
 def main():
     tests = [(0, 0), (4294967295, 4294967295)]
     for _ in range(10):
+        tests.append((random.randrange(0, 20), random.randrange(0, 20)))
         tests.append((random.randrange(0, 2147483647), random.randrange(0, 2147483647)))
     for t in tests:
         try:

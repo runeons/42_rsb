@@ -7,14 +7,14 @@ C_YELLOW = "\033[33m"
 C_BLUE = "\033[34m"
 C_RES = "\033[0m"
 
-def adder(x: int, y: int) -> int:
-    if x < 0 or y < 0:
+def adder(a: int, b: int) -> int:
+    if a < 0 or b < 0:
             raise ValueError(f"{C_RED}Error: {C_RES}Unsigned int expected.")
-    while (y != 0):
-        carry = x & y
-        x = x ^ y
-        y = carry << 1
-    return x
+    while (b != 0):
+        carry = a & b
+        a = a ^ b
+        b = carry << 1
+    return a
 
 def check_time_complexity(f):
     input_sizes = [1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000]
@@ -37,6 +37,7 @@ def check_time_complexity(f):
 def main():
     tests = [(0, 0), (4294967295, 4294967295)]
     for _ in range(10):
+        tests.append((random.randrange(0, 100), random.randrange(0, 100)))
         tests.append((random.randrange(0, 2147483647), random.randrange(0, 2147483647)))
     for t in tests:
         try:

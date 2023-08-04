@@ -101,14 +101,35 @@ def eval_formula(formula: str) -> bool:
     return (ast.compute())
 
 def main():
-    npi_inputs = ["10&", "10=", "10|", "11=", "11>", "1011||=", "10&!", "10=!", "10|!", "11=!", "11>!", "1011||=!"]
+    npi_inputs = []
+    tests = [
+        ("11=", True),
+        ("1011||=!", False),
+        ("10&!", True),
+        ("10=!", True),
+        ("10|!", False),
+        ("11=!", False),
+        ("11>!", False),
+    ]
+    tests_subjects = [
+        ("10&", False),
+        ("10|", True),
+        ("11>", True),
+        ("10=", False),
+        ("1011||=", True),
+    ]
+    for t in tests:
+        npi_inputs.append(t)
+    for t in tests_subjects:
+        npi_inputs.append(t)
     for npi in npi_inputs:
         try:
-            res = eval_formula(npi)
-            if (res == True):
-                print(f"{C_GREEN}{npi}{C_RES} ==> {C_GREEN}{res}{C_RES}")
+            res = eval_formula(npi[0])
+            expected = npi[1]
+            if (res == expected):
+                print(f"{C_GREEN}{(res == expected)}: {C_RES}{npi[0]} = {expected} = {res}")
             else:
-                print(f"{C_RED}{npi}{C_RES} ==> {C_RED}{res}{C_RES}")
+                print(f"{C_RED}{(res == expected)}: {C_RES}{npi[0]} = {expected} != {res}")
         except ValueError as e:
             print(e)
     # try:

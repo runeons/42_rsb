@@ -2,14 +2,14 @@ C_GREEN = "\033[92m"
 C_RED = "\033[91m"
 C_RES = "\033[0m"
 
-def gray_code(a: int) -> int:
-    if a < 0 :
+def gray_code(n: int) -> int:
+    if n < 0 :
         raise ValueError(f"{C_RED}Error: {C_RES}Unsigned int expected.")
-    calc = (a ^ (a << 1)) >> 1
-    return calc
+    res = (n ^ (n << 1)) >> 1
+    return res
 
 def main():
-    tests = ([(86, 125), (99, 82), (100, 86), (128, 192), (2147483647, 1073741824)])
+    tests = ([(86, 125), (99, 82), (100, 86), (128, 192), (2147483647, 1073741824), (4294967294, 2147483649), (4294967295, 2147483648)])
     tests_subjects = [(0, 0), (1, 1), (2, 3), (3, 2), (4, 6), (5, 7), (6, 5), (7, 4), (8, 12)] # subject
     for t in tests_subjects:
         tests.append(t)
