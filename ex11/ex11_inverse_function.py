@@ -62,7 +62,6 @@ class ZCurve:
     def reverse_map(self, p):
         if (p < 0 or p > 1):
             raise ValueError(f"{C_RED}Error: {C_RES} input {p} must be between 0 and 1.")
-        tmp = p
         p = self._denormalise(p)
         x, y = self._int_to_coordinates(p)
         return x, y
